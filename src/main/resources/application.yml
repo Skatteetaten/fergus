@@ -1,0 +1,35 @@
+info:
+    serviceLinks:
+        api-doc: "${route.name}/docs/index.html"
+    dependencies:
+        skatteetaten: "skatteetaten"
+
+spring:
+    profiles:
+        active: local
+
+logging:
+    level:
+        ske.aurora: INFO
+        no.skatteetaten: INFO
+        org:
+            springframework: WARN
+            apache.catalina: WARN
+            hibernate: WARN
+
+---
+spring:
+    profiles: local
+    datasource:
+        url: ${refapp.datasource.url:jdbc:oracle:thin:@host:port/path}
+        username: ${refapp.datasource.username:username}
+        password: ${refapp.datasource.password:password}
+
+
+management:
+    server.port: 8081
+
+
+logging:
+    pattern:
+        console: "%d [%-9.9thread] %-5level %logger %X - %msg %n%rEx{full}"

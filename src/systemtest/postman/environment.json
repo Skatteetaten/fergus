@@ -1,0 +1,11 @@
+{
+  "name": "postman_environment",
+  "values": [
+    {
+      "key": "referanse-kotlin",
+      "value": "localhost:8080",
+      "type": "text",
+      "enabled": true
+    }
+  ]
+}

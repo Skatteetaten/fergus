@@ -1,0 +1,11 @@
+[resources-counter]
+= Counter
+
+The counter resource is used to illustrate basic database functionality. The GET request is
+not idempotent. Any request to the resource will increment the counter by 1.
+
+include::{snippets}/counter-get/httpie-request.adoc[]
+
+*Response:*
+include::{snippets}/counter-get/response-fields.adoc[]
+include::{snippets}/counter-get/http-response.adoc[]

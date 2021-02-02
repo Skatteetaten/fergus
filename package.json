@@ -1,0 +1,14 @@
+{
+  "name": "openshift-reference-springboot-server-kotlin",
+  "version": "0.0.1",
+  "config": { "baseURL": "http://localhost:8080/"},
+  "scripts": {
+    "test": "npm-run-all fetchCounter",
+    "version": "newman --version",
+    "fetchCounter": "newman run -e src/systemtest/postman/environment.json src/systemtest/postman/fetchCounter.json"
+  },
+  "dependencies": {
+    "newman": "3.6.0",
+    "npm-run-all": "^4.0.2"
+  }
+}

@@ -1,0 +1,63 @@
+{
+	"info": {
+		"name": "fetchCounter",
+		"_postman_id": "f24b09dc-8119-30a9-01cb-4a679ac1f486",
+		"description": "",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "fetchCounter",
+			"request": {
+				"url": "http://{{referanse-kotlin}}/api/counter",
+				"method": "GET",
+				"header": [
+					{
+						"key": "korrelasjonsid",
+						"value": "isolertsystemtest-{{$guid}}",
+						"description": ""
+					}
+				],
+				"description": ""
+			},
+			"response": []
+		},
+    {
+      "name": "fetchCounter2",
+      "request": {
+        "url": "http://{{referanse-kotlin}}/api/counter",
+        "method": "GET",
+        "header": [
+          {
+            "key": "korrelasjonsid",
+            "value": "isolertsystemtest-{{$guid}}",
+            "description": ""
+          }
+        ],
+        "description": ""
+      },
+      "response": []
+    }
+	],
+  "event": [
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "var prev = pm.variables.get('prevResponse');",
+          "var current =  pm.response.json().value;",
+          "tests['Check that previous value (' + prev + ') is less than current value (' + current + ').'] = current > prev;",
+          "pm.environment.set('prevResponse', current);"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "prevResponse",
+      "value": "-1",
+      "type": "text"
+    }
+  ]
+}
