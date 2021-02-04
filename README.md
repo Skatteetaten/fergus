@@ -1,3 +1,79 @@
+# Fergus
+<img align="right" src="https://static.wikia.nocookie.net/muppet/images/5/5f/Fergus.jpg/revision/latest/scale-to-width-down/200">
+
+NB! This application is under early development.
+
+## What is it?
+
+Fergus is a http based REST service to conveniently set up buckets and users with a standard set of policies in a StorageGrid S3 solution.
+The main purpose is to provision separately available storage areas for specific
+users/applications to make simple object storage available for clients.
+
+The component is named after the Fergus Fraggle (https://muppet.fandom.com/wiki/Fergus_Fraggle).
+
+## Building Fergus
+
+Fergus is a Spring Boot application written i Kotlin, using Gradle build automation.
+
+```
+git clone https://github.com/Skatteetaten/fergus.git
+cd fergus
+./gradlew
+```
+
+## S3 server - a prerequisite for testing and deployment
+
+Fergus is developed to operate on a StorageGrid S3 installation. Since the purpose of Fergus is to perform administrative 
+tasks on such a server, a running StorageGrid server is needed to use Fergus.
+
+## Deployment
+
+There are some configuration needed for deploying and running Fergus
+
+### Configuration settings
+
+Fergus need to be configured to connect to the S3 server. This is done by environment variables. All variables have
+defined defaults, so for very basic testing, Fergus can start without them, but only as long as the S3 server conforms
+to the defaults.
+
+Here is a summary of the environment variables used by Fergus:
+
+| Environment variable | Default | Description |
+| ---| ---| ---|
+| FERGUS_S3_HOST | localhost | The host name of the S3 server |
+| FERGUS_S3_PORT | 9000 | The port of the S3 server |
+| FERGUS_S3_USESSL | false | Set to true if the S3 server uses SSL |
+| FERGUS_S3_REGION | us-east-1 | The region of the S3 server, also used for the bucket |
+| FERGUS_RANDOMPASS | false | Set to true if each user should get a separate password (recommended)|
+| FERGUS_DEFAULT_PASSWORD | S3userpass | The returned userpass if FERGUS_RANDOMPASS is false |
+| FERGUS_ACCESS_KEY | aurora | Access key for the S3 server admin (recommended to override) |
+| FERGUS_SECRET_KEY | fragleberget | Access secret for the S3 server admin (recommended to override) |
+| FERGUS_DEBUG | false | Set to true to enable debug logging |
+| FERGUS_AURORATOKENLOCATION | ./aurora-token | The location of a file for authentication token see [the API](./API.md) for information |
+
+### Aurora token
+
+To authenticate endpoint requests, a token is used.  This token is stored in a file as indicated by the
+FERGUS_AURORATOKENLOCATION configuration, and is mandatory for Fergus to work (an error will occur on startup if missing).
+
+## Using Fergus - API
+
+Fergus provides an http based API as a service.  [The API is described here](./TOBEDECIDED.md)
+
+## Versioning
+
+We use [Semantic versioning](http://semver.org/) for our release versions.
+
+## Authors
+
+* **Rune Offerdal** - *Initial work*
+
+## License
+
+This project is licensed under the Apache 2.0 License - see the [LICENSE](./LICENSE) file for details
+
+
+
 # Spring Boot Reference Application Kotliin
 
 The intention of the Reference Application is to serve as a guide when developing Business Applications
@@ -287,7 +363,7 @@ Developement tools are activated via a profile. In order to always activate the 
 	<activeProfiles>
 		<activeProfile>enable-devtools</activeProfile>
 	</activeProfiles>
-</settings>
+
 
 In Jenkins this will be disabled so that all Leveransepakke that is built on Jenkins will not have devtools included. If
 you want to have jenkins in a snapshot build use the development flow and build it locally. Or conditionally add the `devtools`
