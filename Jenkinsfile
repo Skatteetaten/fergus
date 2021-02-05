@@ -11,7 +11,7 @@ def config = [
     chatRoom                   : "#aos-notifications",
     compileProperties          : "-U",
     versionStrategy            : [
-        [branch: 'master', versionHint: '1']
+        [branch: 'master', versionHint: '0']
     ]
 ]
 fileLoader.withGit(config.pipelineScript, config.scriptVersion) {
