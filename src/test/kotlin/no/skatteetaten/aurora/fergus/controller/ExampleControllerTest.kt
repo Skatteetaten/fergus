@@ -1,11 +1,11 @@
-package no.skatteetaten.aurora.openshift.reference.springboot.controller
+package no.skatteetaten.aurora.fergus.controller
 
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.Metrics
 import no.skatteetaten.aurora.AuroraMetrics
-import no.skatteetaten.aurora.openshift.reference.springboot.controllers.ErrorHandler
-import no.skatteetaten.aurora.openshift.reference.springboot.controllers.ExampleController
-import no.skatteetaten.aurora.openshift.reference.springboot.service.SometimesFailingService
+import no.skatteetaten.aurora.fergus.controllers.ErrorHandler
+import no.skatteetaten.aurora.fergus.controllers.ExampleController
+import no.skatteetaten.aurora.fergus.service.SometimesFailingService
 import org.junit.jupiter.api.Test
 import org.mockito.BDDMockito.given
 import org.springframework.beans.factory.annotation.Autowired

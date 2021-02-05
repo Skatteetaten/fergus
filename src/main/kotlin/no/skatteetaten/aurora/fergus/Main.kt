@@ -1,5 +1,5 @@
 @file:JvmName("Main")
-package no.skatteetaten.aurora.openshift.reference.springboot
+package no.skatteetaten.aurora.fergus
 
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration

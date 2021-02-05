@@ -1,4 +1,4 @@
-package no.skatteetaten.aurora.openshift.reference.springboot.controllers
+package no.skatteetaten.aurora.fergus.controllers
 
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus

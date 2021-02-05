@@ -1,4 +1,4 @@
-package no.skatteetaten.aurora.openshift.reference.springboot
+package no.skatteetaten.aurora.fergus
 
 import org.springframework.boot.web.client.RestTemplateBuilder
 import org.springframework.context.annotation.Bean

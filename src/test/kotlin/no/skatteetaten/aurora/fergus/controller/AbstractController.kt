@@ -1,4 +1,4 @@
-package no.skatteetaten.aurora.openshift.reference.springboot.controller
+package no.skatteetaten.aurora.fergus.controller
 
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.extension.ExtendWith

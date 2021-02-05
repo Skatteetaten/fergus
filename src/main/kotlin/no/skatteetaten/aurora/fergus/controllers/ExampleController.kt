@@ -1,10 +1,10 @@
-package no.skatteetaten.aurora.openshift.reference.springboot.controllers
+package no.skatteetaten.aurora.fergus.controllers
 
 import com.fasterxml.jackson.databind.JsonNode
 import no.skatteetaten.aurora.AuroraMetrics
 import no.skatteetaten.aurora.AuroraMetrics.StatusValue.CRITICAL
 import no.skatteetaten.aurora.AuroraMetrics.StatusValue.OK
-import no.skatteetaten.aurora.openshift.reference.springboot.service.SometimesFailingService
+import no.skatteetaten.aurora.fergus.service.SometimesFailingService
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.client.RestTemplate

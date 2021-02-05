@@ -1,4 +1,4 @@
-package no.skatteetaten.aurora.openshift.reference.springboot.service
+package no.skatteetaten.aurora.fergus.service
 
 import org.springframework.stereotype.Component
 
