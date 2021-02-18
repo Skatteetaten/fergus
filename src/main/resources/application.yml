@@ -17,9 +17,14 @@ logging:
             apache.catalina: WARN
             hibernate: WARN
 
+
 ---
+
 spring:
-    profiles: local
+    config:
+        activate:
+            on-profile: local
+
 #    datasource:
 #        url: ${refapp.datasource.url:jdbc:oracle:thin:@host:port/path}
 #        username: ${refapp.datasource.username:username}
@@ -33,3 +38,8 @@ management:
 logging:
     pattern:
         console: "%d [%-9.9thread] %-5level %logger %X - %msg %n%rEx{full}"
+
+integrations:
+    storagegrid:
+        url: false
+
