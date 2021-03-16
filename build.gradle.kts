@@ -11,10 +11,13 @@ aurora {
         useKtLint
     }
     useSpringBoot {
+        useWebFlux
         useCloudContract
     }
 }
 
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-validation")
+    implementation("org.springframework.boot:spring-boot-starter-webflux")
+    implementation("io.projectreactor.kotlin:reactor-kotlin-extensions:1.1.2")
 }

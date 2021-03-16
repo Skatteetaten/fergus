@@ -5,6 +5,8 @@ info:
         skatteetaten: "skatteetaten"
 
 spring:
+    application:
+        name: fergus
     profiles:
         active: local
 
