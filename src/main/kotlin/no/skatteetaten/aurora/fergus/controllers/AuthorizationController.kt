@@ -15,7 +15,7 @@ import no.skatteetaten.aurora.fergus.service.StorageGridService
 class AuthorizationController(private val storageGridService: StorageGridService) {
 
     @PostMapping("/authorize")
-    fun authorize(@RequestBody @Valid authorizationPayload: AuthorizationPayload) {
+    suspend fun authorize(@RequestBody @Valid authorizationPayload: AuthorizationPayload) {
         val token = storageGridService.authorize(authorizationPayload)
     }
 }

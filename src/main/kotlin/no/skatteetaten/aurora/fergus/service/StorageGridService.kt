@@ -16,14 +16,16 @@ class StorageGridServiceReactive(
     @TargetService(ServiceTypes.STORAGEGRID) private val webClient: WebClient,
     val objectMapper: ObjectMapper
 ) : StorageGridService {
-    override suspend fun authorize(authorizationPayload: AuthorizationPayload): String? {
+    override suspend fun authorize(authorizationPayload: AuthorizationPayload): AuthorizeResponse? = webClient
+        .get()
+        .uri("/api/v3/authorize")
+        .authorize()
 
-        return null
-    }
+    private suspend inline fun WebClient.RequestHeadersSpec<*>.authorize(): AuthorizeResponse? = null
 }
 
 interface StorageGridService {
-    suspend fun authorize(authorizationPayload: AuthorizationPayload): AuthorizeResponse = integrationDisabled()
+    suspend fun authorize(authorizationPayload: AuthorizationPayload): AuthorizeResponse? = integrationDisabled()
 
     private fun integrationDisabled(): Nothing =
         throw FergusException("StorageGrid integration is disabled for this environment")
