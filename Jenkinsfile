@@ -17,4 +17,4 @@ def config = [
 fileLoader.withGit(config.pipelineScript, config.scriptVersion) {
   jenkinsfile = fileLoader.load('templates/leveransepakke')
 }
-jenkinsfile.run(config.scriptVersion, config)
+jenkinsfile.gradle(config.scriptVersion, config)
