@@ -8,9 +8,9 @@ import io.netty.handler.timeout.WriteTimeoutHandler
 import mu.KotlinLogging
 import no.skatteetaten.aurora.fergus.integration.HEADER_AURORA_TOKEN
 import no.skatteetaten.aurora.fergus.security.SharedSecretReader
+import no.skatteetaten.aurora.fergus.service.StorageGridServiceReactive
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -53,7 +53,9 @@ class ApplicationConfig(
     private val sharedSecretReader: SharedSecretReader
 ) {
 
-    @ConditionalOnBean(RequiresStorageGrid::class)
+    @Bean
+    fun storageGridService(webClient: WebClient) = StorageGridServiceReactive(webClient)
+
     @Bean
     @TargetService(ServiceTypes.STORAGEGRID)
     fun webClientStorageGrid(

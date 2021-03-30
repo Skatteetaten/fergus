@@ -1,23 +1,16 @@
 package no.skatteetaten.aurora.fergus.service
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
-import org.springframework.stereotype.Service
 import no.skatteetaten.aurora.fergus.controllers.AuthorizationPayload
 import org.springframework.web.reactive.function.client.WebClient
-import com.fasterxml.jackson.databind.ObjectMapper
 import no.skatteetaten.aurora.fergus.FergusException
-import no.skatteetaten.aurora.fergus.RequiresStorageGrid
 import no.skatteetaten.aurora.fergus.ServiceTypes
 import no.skatteetaten.aurora.fergus.TargetService
 
-@Service
-@ConditionalOnBean(RequiresStorageGrid::class)
 class StorageGridServiceReactive(
-    @TargetService(ServiceTypes.STORAGEGRID) private val webClient: WebClient,
-    val objectMapper: ObjectMapper
+    @TargetService(ServiceTypes.STORAGEGRID) private val webClient: WebClient
 ) : StorageGridService {
     override suspend fun authorize(authorizationPayload: AuthorizationPayload): AuthorizeResponse? = webClient
-        .get()
+        .post()
         .uri("/api/v3/authorize")
         .authorize()
 

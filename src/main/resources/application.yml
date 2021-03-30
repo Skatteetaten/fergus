@@ -19,6 +19,20 @@ logging:
             apache.catalina: WARN
             hibernate: WARN
 
+integrations:
+    storagegrid:
+        url: http://storagegrid
+
+---
+
+spring:
+    config:
+        activate:
+            on-profile: openshift
+
+aurora:
+    token:
+        location: /u01/secrets/app/aurora-token/token
 
 ---
 
@@ -32,6 +46,7 @@ spring:
 #        username: ${refapp.datasource.username:username}
 #        password: ${refapp.datasource.password:password}
 
+aurora.token.value: token
 
 management:
     server.port: 8081

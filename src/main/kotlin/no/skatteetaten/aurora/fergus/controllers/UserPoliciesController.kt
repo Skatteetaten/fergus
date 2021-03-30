@@ -1,6 +1,5 @@
 package no.skatteetaten.aurora.fergus.controllers
 
-import no.skatteetaten.aurora.fergus.service.StorageGridService
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -14,7 +13,7 @@ import javax.validation.Valid
  */
 @RestController
 @RequestMapping("/v1")
-class UserPoliciesController(private val storageGridService: StorageGridService) {
+class UserPoliciesController() {
 
     @PostMapping("/buckets/{bucketname}/paths/{path}/userpolicies/")
     suspend fun provisionUserPolicies(
