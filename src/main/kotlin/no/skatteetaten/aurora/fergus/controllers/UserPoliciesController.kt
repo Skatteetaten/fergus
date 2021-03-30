@@ -18,27 +18,35 @@ class UserPoliciesController() {
     suspend fun provisionUserPolicies(
         @PathVariable bucketname: String,
         @PathVariable path: String,
-        @RequestBody @Valid userPayload: UserCreatePayload
-    ): UserPoliciesResponse {
-        // TODO: Implement method
-        return UserPoliciesResponse(bucketname, path, "host", "accesskey", "secretkey")
+        @RequestBody @Valid provisionUserPoliciesPayload: ProvisionUserPoliciesPayload
+    ): ProvisionUserPoliciesResponse {
+        // TODO: Implement method - split subtasks into separate providers/services
+        // Call SG Man API to authenticate tenant root user for token (MVP)
+        // Call SG Man API to create S3 Access Keys for tenant root user (MVP)
+        // Call SG Man API to verify Bucket existence (MVP)
+        // Call SG Man API to create Bucket (MVP)
+        // Call SG Man API to verify User existence (MVP)
+        // Call SG Man API to create User and set Password (MVP)
+        // Call SG Man API to create S3 Access Keys for named User (MVP)
+        // Call SG S3 API to write a canned Policy for the User for the Bucket and Path with the given access parameters (MVP)
+        return ProvisionUserPoliciesResponse(bucketname, path, "host", "accesskey", "secretkey")
     }
 }
 
-data class UserCreatePayload(
-    val tenantAccount: TenantAccount,
+data class ProvisionUserPoliciesPayload(
+    val tenantAccount: TenantAccountInput,
     val username: String,
     val password: String?,
     val access: List<Access>,
 )
 
-data class TenantAccount(
+data class TenantAccountInput(
     val accountId: String,
     val username: String,
     val password: String,
 )
 
-data class UserPoliciesResponse(
+data class ProvisionUserPoliciesResponse(
     val username: String,
     val password: String,
     val host: String,
