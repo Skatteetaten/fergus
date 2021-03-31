@@ -24,9 +24,9 @@ import org.springframework.web.reactive.function.client.ExchangeFilterFunction
 import org.springframework.web.reactive.function.client.WebClient
 import reactor.kotlin.core.publisher.toMono
 import reactor.netty.http.client.HttpClient
-import reactor.netty.tcp.SslProvider
 import java.util.concurrent.TimeUnit
 import kotlin.math.min
+import io.netty.handler.ssl.SslContext
 
 enum class ServiceTypes {
     STORAGEGRID
@@ -62,8 +62,11 @@ class ApplicationConfig(
         @Value("\${integrations.storagegrid.url}") storageGridUrl: String,
         builder: WebClient.Builder
     ) =
-        builder.init().baseUrl(storageGridUrl)
-            .defaultHeader(HttpHeaders.AUTHORIZATION, "$HEADER_AURORA_TOKEN ${sharedSecretReader.secret}").build()
+        builder
+            .init()
+            .baseUrl(storageGridUrl)
+            .defaultHeader(HttpHeaders.AUTHORIZATION, "$HEADER_AURORA_TOKEN ${sharedSecretReader.secret}")
+            .build()
 
     fun WebClient.Builder.init() =
         this.defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
@@ -79,7 +82,7 @@ class ApplicationConfig(
                     it.toMono()
                 }
             )
-            .clientConnector(clientConnector())
+            .clientConnector(clientConnector(true))
 
     private fun clientConnector(ssl: Boolean = false): ReactorClientHttpConnector {
         val httpClient =
@@ -93,12 +96,11 @@ class ApplicationConfig(
                 }
 
         if (ssl) {
-            val sslProvider = SslProvider.builder().sslContext(
-                SslContextBuilder.forClient().trustManager(InsecureTrustManagerFactory.INSTANCE)
-            ).defaultConfiguration(SslProvider.DefaultConfigurationType.NONE).build()
-            httpClient.tcpConfiguration {
-                it.secure(sslProvider)
-            }
+            val sslContext: SslContext = SslContextBuilder
+                .forClient()
+                .trustManager(InsecureTrustManagerFactory.INSTANCE)
+                .build()
+            return ReactorClientHttpConnector(httpClient.secure { it.sslContext(sslContext) })
         }
 
         return ReactorClientHttpConnector(httpClient)

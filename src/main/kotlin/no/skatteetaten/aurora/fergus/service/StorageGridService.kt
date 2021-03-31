@@ -12,9 +12,10 @@ class StorageGridServiceReactive(
     override suspend fun authorize(authorizationPayload: AuthorizationPayload): AuthorizeResponse? = webClient
         .post()
         .uri("/api/v3/authorize")
-        .authorize()
-
-    private suspend inline fun WebClient.RequestHeadersSpec<*>.authorize(): AuthorizeResponse? = null
+        .bodyValue(authorizationPayload)
+        .retrieve()
+        .bodyToMono(AuthorizeResponse::class.java)
+        .block()
 }
 
 interface StorageGridService {
@@ -25,13 +26,11 @@ interface StorageGridService {
 }
 
 data class AuthorizeInput(
-    val accountId: String,
     val username: String,
     val password: String,
 )
 
 fun AuthorizationPayload.toAuthorizeInput() = AuthorizeInput(
-    accountId = accountId,
     username = username,
     password = password,
 )
