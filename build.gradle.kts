@@ -4,10 +4,12 @@ plugins {
     id("org.openapi.generator") version "5.1.0"
     id("org.springframework.boot") version "2.2.6.RELEASE"
     id("no.skatteetaten.gradle.aurora") version("4.2.2")
+    id("net.linguica.maven-settings") version "0.5"
 }
 
 repositories {
     jcenter()
+    mavenCentral()
 }
 
 aurora {
@@ -34,6 +36,9 @@ dependencies {
     implementation("org.openapitools:jackson-databind-nullable:0.2.1")
     implementation("io.swagger:swagger-annotations:1.6.2")
     implementation("com.google.code.findbugs:jsr305:3.0.2")
+
+    // MockWebServer
+    testImplementation("com.squareup.okhttp3:mockwebserver:3.14.9")
 }
 
 openApiGenerate {

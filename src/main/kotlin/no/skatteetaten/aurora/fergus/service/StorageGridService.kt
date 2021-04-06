@@ -1,41 +1,23 @@
 package no.skatteetaten.aurora.fergus.service
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
-import org.springframework.stereotype.Service
-import no.skatteetaten.aurora.fergus.controllers.AuthorizationPayload
-import org.springframework.web.reactive.function.client.WebClient
-import com.fasterxml.jackson.databind.ObjectMapper
-import kotlinx.coroutines.reactive.awaitSingleOrNull
+import kotlinx.coroutines.reactive.awaitSingle
 import no.skatteetaten.aurora.fergus.FergusException
-import no.skatteetaten.aurora.fergus.RequiresStorageGrid
-import no.skatteetaten.aurora.fergus.ServiceTypes
-import no.skatteetaten.aurora.fergus.TargetService
+import no.skatteetaten.aurora.fergus.config.RequiresStorageGrid
+import no.skatteetaten.aurora.fergus.controllers.AuthorizationPayload
 import org.openapitools.client.api.AuthApi
 import org.openapitools.client.model.AuthorizeResponse
 import org.openapitools.client.model.Credentials
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
+import org.springframework.stereotype.Service
 
 @Service
 @ConditionalOnBean(RequiresStorageGrid::class)
-class StorageGridServiceReactive(
-    @TargetService(ServiceTypes.STORAGEGRID) private val webClient: WebClient,
-    @TargetService(ServiceTypes.STORAGEGRID_AUTH) private val authClient: AuthApi,
-    val objectMapper: ObjectMapper
-) : StorageGridService {
-    override suspend fun authorize(authorizationPayload: AuthorizationPayload): AuthorizeResponse? = webClient
-        .get()
-        .uri("/api/v3/authorize")
-        .authorize()
-
-    suspend fun authorizeWithAuthApi(
+class StorageGridServiceReactive(private val storageGridAuthApi: AuthApi) : StorageGridService {
+    override suspend fun authorize(
         authorizationPayload: AuthorizationPayload
-    ): AuthorizeResponse? = authClient.authorizePost(
-        Credentials()
-            .accountId(authorizationPayload.accountId)
-            .username(authorizationPayload.username)
-            .password(authorizationPayload.password)
-    ).awaitSingleOrNull()
-
-    private suspend inline fun WebClient.RequestHeadersSpec<*>.authorize(): AuthorizeResponse? = null
+    ): AuthorizeResponse = storageGridAuthApi
+        .authorizePost(authorizationPayload.toAuthorizeInput())
+        .awaitSingle()
 }
 
 interface StorageGridService {
@@ -45,14 +27,7 @@ interface StorageGridService {
         throw FergusException("StorageGrid integration is disabled for this environment")
 }
 
-data class AuthorizeInput(
-    val accountId: String,
-    val username: String,
-    val password: String,
-)
-
-fun AuthorizationPayload.toAuthorizeInput() = AuthorizeInput(
-    accountId = accountId,
-    username = username,
-    password = password,
-)
+fun AuthorizationPayload.toAuthorizeInput(): Credentials = Credentials()
+    .accountId(accountId)
+    .username(username)
+    .password(password)
