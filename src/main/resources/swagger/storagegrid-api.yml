@@ -81,6 +81,7 @@ paths:
                 200:
                     schema:
                         "$ref": "#/definitions/list-users-response"
+                    description: "OK"
                 default:
                     description: General error
                     schema:
@@ -145,6 +146,7 @@ paths:
                 200:
                     schema:
                         "$ref": "#/definitions/get-patch-post-put-user-response"
+                    description: "OK"
                 default:
                     description: General error
                     schema:
@@ -191,6 +193,7 @@ paths:
                 200:
                     schema:
                         "$ref": "#/definitions/get-patch-post-put-user-response"
+                    description: "OK"
                 default:
                     description: General error
                     schema:
@@ -204,6 +207,7 @@ paths:
                 200:
                     schema:
                         "$ref": "#/definitions/get-patch-post-put-user-response"
+                    description: "OK"
                 default:
                     description: General error
                     schema:
@@ -245,6 +249,7 @@ paths:
                 200:
                     schema:
                         "$ref": "#/definitions/get-patch-post-put-user-response"
+                    description: "OK"
                 default:
                     description: General error
                     schema:
@@ -285,6 +290,7 @@ paths:
                 200:
                     schema:
                         "$ref": "#/definitions/get-patch-post-put-user-response"
+                    description: "OK"
                 default:
                     description: General error
                     schema:
@@ -349,6 +355,7 @@ paths:
                 200:
                     schema:
                         "$ref": "#/definitions/list-access-keys-response"
+                    description: "OK"
                 default:
                     description: General error
                     schema:
@@ -394,6 +401,7 @@ paths:
                 200:
                     schema:
                         "$ref": "#/definitions/get-access-key-response"
+                    description: "OK"
                 default:
                     description: General error
                     schema:
@@ -430,6 +438,7 @@ paths:
                 200:
                     schema:
                         "$ref": "#/definitions/list-access-keys-response"
+                    description: "OK"
                 default:
                     description: General error
                     schema:
@@ -485,6 +494,7 @@ paths:
                 200:
                     schema:
                         "$ref": "#/definitions/get-access-key-response"
+                    description: "OK"
                 default:
                     description: General error
                     schema:
@@ -520,6 +530,7 @@ paths:
                 200:
                     schema:
                         "$ref": "#/definitions/identity-source-get-put-response"
+                    description: "OK"
                 default:
                     description: General error
                     schema:
@@ -546,6 +557,7 @@ paths:
                 200:
                     schema:
                         "$ref": "#/definitions/identity-source-get-put-response"
+                    description: "OK"
                 204:
                     description: communication test succeeded
                 422:
@@ -585,6 +597,7 @@ paths:
                 200:
                     schema:
                         "$ref": "#/definitions/config-get-response"
+                    description: "OK"
                 default:
                     description: General error
                     schema:
@@ -598,6 +611,7 @@ paths:
                 200:
                     schema:
                         "$ref": "#/definitions/product-version-get-response"
+                    description: "OK"
                 default:
                     description: General error
                     schema:
@@ -614,6 +628,7 @@ paths:
                 200:
                     schema:
                         "$ref": "#/definitions/api-versions-get-response"
+                    description: "OK"
                 default:
                     description: General error
                     schema:
@@ -637,6 +652,7 @@ paths:
                 200:
                     schema:
                         "$ref": "#/definitions/container-list-response"
+                    description: "OK"
                 default:
                     description: General error
                     schema:
@@ -706,6 +722,7 @@ paths:
                 200:
                     schema:
                         "$ref": "#/definitions/container-compliance-settings-get-put-response"
+                    description: "OK"
                 404:
                     description: bucket not found or is not compliant
                     schema:
@@ -739,6 +756,7 @@ paths:
                 200:
                     schema:
                         "$ref": "#/definitions/container-compliance-settings-get-put-response"
+                    description: "OK"
                 404:
                     description: bucket not found or is not compliant
                     schema:
@@ -770,6 +788,7 @@ paths:
                 200:
                     schema:
                         "$ref": "#/definitions/container-consistency-get-put-response"
+                    description: "OK"
                 default:
                     description: General error
                     schema:
@@ -793,6 +812,7 @@ paths:
                 200:
                     schema:
                         "$ref": "#/definitions/container-consistency-get-put-response"
+                    description: "OK"
                 default:
                     description: General error
                     schema:
@@ -813,6 +833,7 @@ paths:
                 200:
                     schema:
                         "$ref": "#/definitions/container-cors-configuration-get-put-response"
+                    description: "OK"
                 default:
                     description: General error
                     schema:
@@ -837,6 +858,7 @@ paths:
                 200:
                     schema:
                         "$ref": "#/definitions/container-cors-configuration-get-put-response"
+                    description: "OK"
                 default:
                     description: General error
                     schema:
@@ -856,6 +878,7 @@ paths:
                 200:
                     schema:
                         "$ref": "#/definitions/container-last-access-time-get-put-response"
+                    description: "OK"
                 default:
                     description: General error
                     schema:
@@ -879,6 +902,7 @@ paths:
                 200:
                     schema:
                         "$ref": "#/definitions/container-last-access-time-get-put-response"
+                    description: "OK"
                 default:
                     description: General error
                     schema:
@@ -898,6 +922,7 @@ paths:
                 200:
                     schema:
                         "$ref": "#/definitions/container-metadata-notification-configuration-get-put-response"
+                    description: "OK"
                 default:
                     description: General error
                     schema:
@@ -921,6 +946,7 @@ paths:
                 200:
                     schema:
                         "$ref": "#/definitions/container-metadata-notification-configuration-get-put-response"
+                    description: "OK"
                 default:
                     description: General error
                     schema:
@@ -940,6 +966,7 @@ paths:
                 200:
                     schema:
                         "$ref": "#/definitions/container-notification-configuration-get-put-response"
+                    description: "OK"
                 default:
                     description: General error
                     schema:
@@ -963,6 +990,7 @@ paths:
                 200:
                     schema:
                         "$ref": "#/definitions/container-notification-configuration-get-put-response"
+                    description: "OK"
                 default:
                     description: General error
                     schema:
@@ -982,6 +1010,7 @@ paths:
                 200:
                     schema:
                         "$ref": "#/definitions/container-replication-configuration-get-put-response"
+                    description: "OK"
                 default:
                     description: General error
                     schema:
@@ -1005,6 +1034,7 @@ paths:
                 200:
                     schema:
                         "$ref": "#/definitions/container-replication-configuration-get-put-response"
+                    description: "OK"
                 default:
                     description: General error
                     schema:
@@ -1018,6 +1048,7 @@ paths:
                 200:
                     schema:
                         "$ref": "#/definitions/account-usage-response"
+                    description: "OK"
                 default:
                     description: General error
                     schema:
@@ -1058,6 +1089,7 @@ paths:
                       - desc
             responses:
                 200:
+                    description: "OK"
                     schema:
                         "$ref": "#/definitions/list-groups-response"
                 default:
@@ -1100,6 +1132,7 @@ paths:
                   type: string
             responses:
                 200:
+                    description: "OK"
                     schema:
                         "$ref": "#/definitions/get-patch-post-put-group-response"
                 default:
@@ -1119,6 +1152,7 @@ paths:
                   type: string
             responses:
                 200:
+                    description: "OK"
                     schema:
                         "$ref": "#/definitions/get-patch-post-put-group-response"
                 default:
@@ -1138,6 +1172,7 @@ paths:
                   type: string
             responses:
                 200:
+                    description: "OK"
                     schema:
                         "$ref": "#/definitions/get-patch-post-put-group-response"
                 default:
@@ -1178,6 +1213,7 @@ paths:
                       "$ref": "#/definitions/patch-group-request"
             responses:
                 200:
+                    description: "OK"
                     schema:
                         "$ref": "#/definitions/get-patch-post-put-group-response"
                 default:
@@ -1237,6 +1273,7 @@ paths:
                       - desc
             responses:
                 200:
+                    description: "OK"
                     schema:
                         "$ref": "#/definitions/endpoint-get-all-response"
                 default:
@@ -1292,6 +1329,7 @@ paths:
                   type: string
             responses:
                 200:
+                    description: "OK"
                     schema:
                         "$ref": "#/definitions/endpoint-get-post-put-response"
                 default:
@@ -1369,6 +1407,7 @@ paths:
                       "$ref": "#/definitions/credentials"
             responses:
                 200:
+                    description: "OK"
                     schema:
                         "$ref": "#/definitions/authorize-response"
                     headers:
@@ -1481,6 +1520,7 @@ paths:
             summary: Retrieves the currently deactivated features
             responses:
                 200:
+                    description: "OK"
                     schema:
                         "$ref": "#/definitions/deactivated-features-get-response"
                 default:
@@ -1494,6 +1534,7 @@ paths:
             summary: Lists configured regions
             responses:
                 200:
+                    description: "OK"
                     schema:
                         "$ref": "#/definitions/regions-get-response"
                 default:
@@ -1507,6 +1548,7 @@ paths:
             summary: Retrieves the global compliance settings
             responses:
                 200:
+                    description: "OK"
                     schema:
                         "$ref": "#/definitions/compliance-global-get-response"
                 default:
@@ -2246,7 +2288,7 @@ definitions:
                     bucket, in minutes, starting when the object is ingested into the grid
                 type: integer
                 example: 2629800
-                minValue: 1
+                minimum: 1
     container-compliance-settings-get-put-response:
         allOf:
             - "$ref": "#/definitions/response"

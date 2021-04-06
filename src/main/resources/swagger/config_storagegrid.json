@@ -1,0 +1,7 @@
+{
+  "dateLibrary": "java8",
+  "reactive": true,
+  "swaggerAnnotations": false,
+  "enumPropertyNaming": "UPPERCASE",
+  "gradleBuildFile": false
+}

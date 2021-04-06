@@ -1,5 +1,6 @@
 package no.skatteetaten.aurora.fergus
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import io.netty.channel.ChannelOption
 import io.netty.handler.ssl.SslContextBuilder
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory
@@ -8,6 +9,10 @@ import io.netty.handler.timeout.WriteTimeoutHandler
 import mu.KotlinLogging
 import no.skatteetaten.aurora.fergus.integration.HEADER_AURORA_TOKEN
 import no.skatteetaten.aurora.fergus.security.SharedSecretReader
+import org.openapitools.client.ApiClient
+import org.openapitools.client.RFC3339DateFormat
+import org.openapitools.client.api.AuthApi
+import org.openapitools.client.api.S3Api
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
@@ -25,11 +30,15 @@ import org.springframework.web.reactive.function.client.WebClient
 import reactor.kotlin.core.publisher.toMono
 import reactor.netty.http.client.HttpClient
 import reactor.netty.tcp.SslProvider
+import java.text.DateFormat
+import java.util.TimeZone
 import java.util.concurrent.TimeUnit
 import kotlin.math.min
 
 enum class ServiceTypes {
-    STORAGEGRID
+    STORAGEGRID,
+    STORAGEGRID_S3,
+    STORAGEGRID_AUTH,
 }
 
 @Target(AnnotationTarget.TYPE, AnnotationTarget.FUNCTION, AnnotationTarget.FIELD, AnnotationTarget.VALUE_PARAMETER)
@@ -50,6 +59,7 @@ class ApplicationConfig(
     @Value("\${fergus.webclient.write-timeout:30000}") val writeTimeout: Long,
     @Value("\${fergus.webclient.connection-timeout:30000}") val connectionTimeout: Int,
     @Value("\${spring.application.name}") val applicationName: String,
+    private val objectMapper: ObjectMapper,
     private val sharedSecretReader: SharedSecretReader
 ) {
 
@@ -62,6 +72,42 @@ class ApplicationConfig(
     ) =
         builder.init().baseUrl(storageGridUrl)
             .defaultHeader(HttpHeaders.AUTHORIZATION, "$HEADER_AURORA_TOKEN ${sharedSecretReader.secret}").build()
+
+    @ConditionalOnBean(RequiresStorageGrid::class)
+    @Bean
+    @TargetService(ServiceTypes.STORAGEGRID_S3)
+    fun storageGridS3Api(
+        @Value("\${integrations.storagegrid.url}") storageGridUrl: String,
+        builder: WebClient.Builder
+    ): S3Api {
+        val webClient = builder
+            .init()
+            .baseUrl(storageGridUrl)
+            .defaultHeader(HttpHeaders.AUTHORIZATION, "$HEADER_AURORA_TOKEN ${sharedSecretReader.secret}")
+            .build()
+        val dateFormat: DateFormat = RFC3339DateFormat()
+        dateFormat.timeZone = TimeZone.getTimeZone("UTC")
+
+        return S3Api(ApiClient(webClient, objectMapper, dateFormat))
+    }
+
+    @ConditionalOnBean(RequiresStorageGrid::class)
+    @Bean
+    @TargetService(ServiceTypes.STORAGEGRID_AUTH)
+    fun storageGridAuthApi(
+        @Value("\${integrations.storagegrid.url}") storageGridUrl: String,
+        builder: WebClient.Builder
+    ): AuthApi {
+        val webClient = builder
+            .init()
+            .baseUrl(storageGridUrl)
+            .defaultHeader(HttpHeaders.AUTHORIZATION, "$HEADER_AURORA_TOKEN ${sharedSecretReader.secret}")
+            .build()
+        val dateFormat: DateFormat = RFC3339DateFormat()
+        dateFormat.timeZone = TimeZone.getTimeZone("UTC")
+
+        return AuthApi(ApiClient(webClient, objectMapper, dateFormat))
+    }
 
     fun WebClient.Builder.init() =
         this.defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
