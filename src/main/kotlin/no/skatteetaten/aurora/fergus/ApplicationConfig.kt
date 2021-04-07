@@ -8,10 +8,6 @@ import org.springframework.context.annotation.Configuration
 
 @Configuration
 class ApplicationConfig {
-
-    @Bean
-    fun apiClient() = ApiClient()
-
     @Bean
     fun storageGridS3Api(storageGridApiClient: ApiClient): S3Api = S3Api(storageGridApiClient)
 
