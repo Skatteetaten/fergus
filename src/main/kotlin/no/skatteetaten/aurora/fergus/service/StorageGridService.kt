@@ -19,7 +19,10 @@ class StorageGridServiceReactive(private val storageGridAuthApi: AuthApi) : Stor
             .authorizePost(authorizationPayload.toAuthorizeInput())
             .awaitSingle()
         if (response.status === AuthorizeResponse.StatusEnum.ERROR) {
-            throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR)
+            throw ResponseStatusException(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "The Storagegrid auth api returned an error"
+            )
         }
         return response.data // Returns authorization token
     }
