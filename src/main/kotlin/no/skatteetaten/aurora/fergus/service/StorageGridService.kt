@@ -4,6 +4,7 @@ import kotlinx.coroutines.reactive.awaitSingle
 import no.skatteetaten.aurora.fergus.FergusException
 import no.skatteetaten.aurora.fergus.controllers.AuthorizationPayload
 import org.openapitools.client.api.AuthApi
+import org.openapitools.client.model.AuthorizeResponse
 import org.openapitools.client.model.Credentials
 import org.springframework.stereotype.Service
 
@@ -11,10 +12,15 @@ import org.springframework.stereotype.Service
 class StorageGridServiceReactive(private val storageGridAuthApi: AuthApi) : StorageGridService {
     override suspend fun authorize(
         authorizationPayload: AuthorizationPayload
-    ): String = storageGridAuthApi
-        .authorizePost(authorizationPayload.toAuthorizeInput())
-        .awaitSingle()
-        .data // Returns authorization token
+    ): String {
+        val response: AuthorizeResponse = storageGridAuthApi
+            .authorizePost(authorizationPayload.toAuthorizeInput())
+            .awaitSingle()
+        if (response.status === AuthorizeResponse.StatusEnum.ERROR) {
+            throw FergusException("The Storagegrid auth api returned an error")
+        }
+        return response.data // Returns authorization token
+    }
 }
 
 interface StorageGridService {
