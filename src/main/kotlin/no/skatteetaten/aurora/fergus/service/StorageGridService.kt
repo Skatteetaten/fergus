@@ -6,7 +6,9 @@ import no.skatteetaten.aurora.fergus.controllers.AuthorizationPayload
 import org.openapitools.client.api.AuthApi
 import org.openapitools.client.model.AuthorizeResponse
 import org.openapitools.client.model.Credentials
+import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
+import org.springframework.web.server.ResponseStatusException
 
 @Service
 class StorageGridServiceReactive(private val storageGridAuthApi: AuthApi) : StorageGridService {
@@ -17,7 +19,7 @@ class StorageGridServiceReactive(private val storageGridAuthApi: AuthApi) : Stor
             .authorizePost(authorizationPayload.toAuthorizeInput())
             .awaitSingle()
         if (response.status === AuthorizeResponse.StatusEnum.ERROR) {
-            throw FergusException("The Storagegrid auth api returned an error")
+            throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR)
         }
         return response.data // Returns authorization token
     }
