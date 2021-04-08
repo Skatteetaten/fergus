@@ -44,6 +44,7 @@ class StorageGridServiceTest {
 
     @Test
     fun `sunshine test`() {
+        val mockToken = "test token"
         mockWebServer.enqueue(
             MockResponse()
                 .setResponseCode(200)
@@ -52,6 +53,7 @@ class StorageGridServiceTest {
                     objectMapper.writeValueAsString(
                         AuthorizeResponse().apply {
                             status = SUCCESS
+                            data = mockToken
                         }
                     )
                 )
@@ -59,13 +61,14 @@ class StorageGridServiceTest {
 
         runBlocking {
             val body = AuthorizationPayload(
+                accountId = "testAccount",
                 username = "testUser",
                 password = "testPass",
             )
             val token = storageGridService.authorize(body)
             val request = mockWebServer.takeRequest()
 
-            assertThat(token?.status).isEqualTo(SUCCESS)
+            assertThat(token).isEqualTo(mockToken)
             assertThat(request.getHeader(AUTHORIZATION)).isEqualTo("aurora-token testToken")
             assertThat(request.path).isEqualTo("/api/v3/authorize")
             assertThat(request.body.readUtf8()).isEqualTo(objectMapper.writeValueAsString(body.toAuthorizeInput()))
