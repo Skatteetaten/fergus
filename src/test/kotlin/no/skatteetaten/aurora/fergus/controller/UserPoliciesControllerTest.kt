@@ -7,7 +7,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
 @WebMvcTest(UserPoliciesController::class)
-class UserPoliciesControllerTest : AbstractController() {
+class UserPoliciesControllerTest : AbstractTestController() {
 
     @Test
     fun happyTest() {
