@@ -59,7 +59,6 @@ class StorageGridServiceTest {
 
         runBlocking {
             val body = AuthorizationPayload(
-                accountId = "testAccount",
                 username = "testUser",
                 password = "testPass",
             )
