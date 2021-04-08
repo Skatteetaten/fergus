@@ -58,5 +58,5 @@ logging:
 
 integrations:
     storagegrid:
-        url: false
+        url: "https://uia0ins-netapp-storagegrid01.skead.no/"
 

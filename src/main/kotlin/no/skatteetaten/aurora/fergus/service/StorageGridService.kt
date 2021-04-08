@@ -12,13 +12,19 @@ import org.springframework.stereotype.Service
 class StorageGridServiceReactive(private val storageGridAuthApi: AuthApi) : StorageGridService {
     override suspend fun authorize(
         authorizationPayload: AuthorizationPayload
-    ): AuthorizeResponse = storageGridAuthApi
-        .authorizePost(authorizationPayload.toAuthorizeInput())
-        .awaitSingle()
+    ): String {
+        val response: AuthorizeResponse = storageGridAuthApi
+            .authorizePost(authorizationPayload.toAuthorizeInput())
+            .awaitSingle()
+        if (response.status === AuthorizeResponse.StatusEnum.ERROR) {
+            throw FergusException("The Storagegrid auth api returned an error")
+        }
+        return response.data // Returns authorization token
+    }
 }
 
 interface StorageGridService {
-    suspend fun authorize(authorizationPayload: AuthorizationPayload): AuthorizeResponse? = integrationDisabled()
+    suspend fun authorize(authorizationPayload: AuthorizationPayload): String = integrationDisabled()
 
     private fun integrationDisabled(): Nothing =
         throw FergusException("StorageGrid integration is disabled for this environment")
