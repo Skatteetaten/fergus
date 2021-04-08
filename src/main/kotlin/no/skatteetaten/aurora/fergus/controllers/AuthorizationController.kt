@@ -23,6 +23,7 @@ class AuthorizationController(private val storageGridService: StorageGridService
 }
 
 data class AuthorizationPayload(
+    val accountId: String,
     val username: String,
     val password: String,
 )

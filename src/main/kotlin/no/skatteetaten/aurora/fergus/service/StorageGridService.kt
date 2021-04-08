@@ -25,5 +25,6 @@ interface StorageGridService {
 }
 
 fun AuthorizationPayload.toAuthorizeInput(): Credentials = Credentials()
+    .accountId(accountId)
     .username(username)
     .password(password)
