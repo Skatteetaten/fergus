@@ -2,6 +2,7 @@ package no.skatteetaten.aurora.fergus.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.netty.channel.ChannelOption
+import io.netty.handler.ssl.SslContext
 import io.netty.handler.ssl.SslContextBuilder
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory
 import io.netty.handler.timeout.ReadTimeoutHandler
@@ -22,7 +23,6 @@ import org.springframework.web.reactive.function.client.ExchangeFilterFunction
 import org.springframework.web.reactive.function.client.WebClient
 import reactor.kotlin.core.publisher.toMono
 import reactor.netty.http.client.HttpClient
-import reactor.netty.tcp.SslProvider
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.TimeZone
@@ -78,7 +78,7 @@ class Swagger(
                     it.toMono()
                 }
             )
-            .clientConnector(clientConnector())
+            .clientConnector(clientConnector(true))
 
     fun clientConnector(ssl: Boolean = false): ReactorClientHttpConnector {
         val httpClient =
@@ -92,12 +92,11 @@ class Swagger(
                 }
 
         if (ssl) {
-            val sslProvider = SslProvider.builder().sslContext(
-                SslContextBuilder.forClient().trustManager(InsecureTrustManagerFactory.INSTANCE)
-            ).defaultConfiguration(SslProvider.DefaultConfigurationType.NONE).build()
-            httpClient.tcpConfiguration {
-                it.secure(sslProvider)
-            }
+            val sslContext: SslContext = SslContextBuilder
+                .forClient()
+                .trustManager(InsecureTrustManagerFactory.INSTANCE)
+                .build()
+            return ReactorClientHttpConnector(httpClient.secure { it.sslContext(sslContext) })
         }
 
         return ReactorClientHttpConnector(httpClient)
