@@ -41,6 +41,8 @@ dependencies {
 
     // MockWebServer
     testImplementation("com.squareup.okhttp3:mockwebserver:3.14.9")
+
+    testImplementation("com.ninja-squad:springmockk:2.0.1")
 }
 
 openApiGenerate {
