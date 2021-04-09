@@ -1,4 +1,6 @@
 #!/usr/bin/env groovy
+def jenkinsfile
+
 def config = [
     scriptVersion              : 'v7',
     iqOrganizationName         : 'Team AOS',
