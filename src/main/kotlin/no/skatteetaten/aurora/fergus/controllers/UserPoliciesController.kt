@@ -30,15 +30,15 @@ class UserPoliciesController(private val storageGridService: StorageGridService)
         )
         val token = storageGridService.authorize(authorizationPayload)
 
-        // Call SG Man API to verify Bucket existence (MVP)
-        // Call SG Man API to create Bucket (MVP)
+        // Verify Bucket existence and create Bucket if not (MVP)
+        storageGridService.provideBucket(bucketname, token)
         // Call SG Man API to verify Group existence (MVP)
         // Call SG Man API to create Group with policy for the User for the Bucket and Path with the given access parameters (MVP)
         // Call SG Man API to verify User existence (MVP)
         // Call SG Man API to create User and Group membership (MVP)
         // Call SG Man API to change User password (MVP)
         // Call SG Man API to create S3 Access Keys for named User (MVP)
-        return ProvisionUserPoliciesResponse(bucketname, path, "host", "accesskey", "secretkey")
+        return ProvisionUserPoliciesResponse(provisionUserPoliciesPayload.username, provisionUserPoliciesPayload.password ?: "password", "host", "accesskey", "secretkey")
     }
 }
 

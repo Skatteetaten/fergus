@@ -40,22 +40,26 @@ class StorageGridServiceReactive(
         val bucketListResponse: ContainerListResponse = storageGridContainersApi
             .orgContainersGet(listOf<String>())
             .awaitSingle()
-        if (bucketListResponse.status === ContainerListResponse.StatusEnum.ERROR){
+        if (bucketListResponse.status === ContainerListResponse.StatusEnum.ERROR) {
             throw ResponseStatusException(
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 "The Storagegrid containers api returned an error"
             )
         }
         // TODO: Check if bucketName exists in bucketListResponse, if not, create
+        val bucketNames: List<String> = bucketListResponse.data.map { it.name }
+        if (!bucketNames.contains(bucketName)) {
+            // TODO: Create bucket
+        }
 
-        return response.data // Returns bucket name
+        return bucketName // Returns bucket name
     }
 }
 
 interface StorageGridService {
     suspend fun authorize(authorizationPayload: AuthorizationPayload): String = integrationDisabled()
 
-    suspend fun provideBucket(bucketName: String): String = integrationDisabled()
+    suspend fun provideBucket(bucketName: String, token: String): String = integrationDisabled()
 
     private fun integrationDisabled(): Nothing =
         throw FergusException("StorageGrid integration is disabled for this environment")
