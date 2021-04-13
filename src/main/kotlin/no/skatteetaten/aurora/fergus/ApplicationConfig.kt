@@ -5,6 +5,7 @@ import org.openapitools.client.api.AuthApi
 import org.openapitools.client.api.ContainersApi
 import org.openapitools.client.api.GroupsApi
 import org.openapitools.client.api.S3Api
+import org.openapitools.client.api.UsersApi
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
@@ -21,4 +22,7 @@ class ApplicationConfig {
 
     @Bean
     fun storageGridGroupsApi(storageGridApiClient: ApiClient): GroupsApi = GroupsApi(storageGridApiClient)
+
+    @Bean
+    fun storageGridUsersApi(storageGridApiClient: ApiClient): UsersApi = UsersApi(storageGridApiClient)
 }

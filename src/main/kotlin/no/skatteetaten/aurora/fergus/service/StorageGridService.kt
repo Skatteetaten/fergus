@@ -7,26 +7,32 @@ import no.skatteetaten.aurora.fergus.controllers.AuthorizationPayload
 import org.openapitools.client.api.AuthApi
 import org.openapitools.client.api.ContainersApi
 import org.openapitools.client.api.GroupsApi
+import org.openapitools.client.api.UsersApi
 import org.openapitools.client.model.AuthorizeResponse
 import org.openapitools.client.model.ContainerCreate
 import org.openapitools.client.model.ContainerCreateResponse
 import org.openapitools.client.model.ContainerListResponse
 import org.openapitools.client.model.Credentials
 import org.openapitools.client.model.GetPatchPostPutGroupResponse
+import org.openapitools.client.model.GetPatchPostPutUserResponse
 import org.openapitools.client.model.ListGroupsResponse
+import org.openapitools.client.model.ListUsersResponse
 import org.openapitools.client.model.Policies
 import org.openapitools.client.model.PolicyS3
 import org.openapitools.client.model.PolicyS3Statement
 import org.openapitools.client.model.PostGroupRequest
+import org.openapitools.client.model.PostUserRequest
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
+import java.util.UUID
 
 @Service
 class StorageGridServiceReactive(
     private val storageGridAuthApi: AuthApi,
     private val storageGridContainersApi: ContainersApi,
     private val storageGridGroupsApi: GroupsApi,
+    private val storageGridUsersApi: UsersApi,
 ) : StorageGridService {
     override suspend fun authorize(
         authorizationPayload: AuthorizationPayload
@@ -76,7 +82,7 @@ class StorageGridServiceReactive(
         return bucketName
     }
 
-    override suspend fun provideGroup(bucketName: String, path: String, access: List<Access>, token: String): String {
+    override suspend fun provideGroup(bucketName: String, path: String, access: List<Access>, token: String): UUID {
         storageGridGroupsApi.apiClient.setBearerToken(token)
 
         val groupName = createGroupName(bucketName, path, access)
@@ -126,6 +132,7 @@ class StorageGridServiceReactive(
             // Find id for matching group
             groupId = (listGroupsResponse.data.filter { it -> it.displayName == groupName }).first().id
         }
+
         if (groupId == null) {
             throw ResponseStatusException(
                 HttpStatus.INTERNAL_SERVER_ERROR,
@@ -133,7 +140,7 @@ class StorageGridServiceReactive(
             )
         }
 
-        return groupId
+        return UUID.fromString(groupId)
     }
 
     private fun createGroupName(
@@ -175,6 +182,45 @@ class StorageGridServiceReactive(
         }
         return objectActionStatement
     }
+
+    override suspend fun provideUser(
+        userName: String,
+        groupId: UUID,
+        token: String
+    ): String {
+        storageGridUsersApi.apiClient.setBearerToken(token)
+        // Get list of buckets for tenant
+        val listUsersResponse = storageGridUsersApi
+            .orgUsersGet(null, 100000, null, null, null)
+            .awaitSingle()
+        if (listUsersResponse.status === ListUsersResponse.StatusEnum.ERROR) {
+            throw ResponseStatusException(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "The Storagegrid users api returned an error on orgUsersGet"
+            )
+        }
+        // Check if userName exists in listUsersResponse, if not, create
+        val userNames: List<String> = listUsersResponse.data.mapNotNull { it.fullName }
+        if (!userNames.contains(userName)) {
+            val postUserRequest = PostUserRequest()
+                .fullName(userName)
+                .uniqueName("user/$userName")
+                .addMemberOfItem(groupId)
+            val userCreateResponse = storageGridUsersApi
+                .orgUsersPost(postUserRequest)
+                .awaitSingle()
+            if (userCreateResponse.status === GetPatchPostPutUserResponse.StatusEnum.ERROR) {
+                throw ResponseStatusException(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    "The Storagegrid users api returned an error on orgUsersPost"
+                )
+            }
+        } else {
+            // TODO: Update group membership for user
+        }
+
+        return userName
+    }
 }
 
 interface StorageGridService {
@@ -182,7 +228,10 @@ interface StorageGridService {
 
     suspend fun provideBucket(bucketName: String, token: String): String = integrationDisabled()
 
-    suspend fun provideGroup(bucketName: String, path: String, access: List<Access>, token: String): String =
+    suspend fun provideGroup(bucketName: String, path: String, access: List<Access>, token: String): UUID =
+        integrationDisabled()
+
+    suspend fun provideUser(userName: String, groupId: UUID, token: String): String =
         integrationDisabled()
 
     private fun integrationDisabled(): Nothing =
