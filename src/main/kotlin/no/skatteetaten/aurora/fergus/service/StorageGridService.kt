@@ -12,6 +12,12 @@ import org.openapitools.client.model.ContainerCreate
 import org.openapitools.client.model.ContainerCreateResponse
 import org.openapitools.client.model.ContainerListResponse
 import org.openapitools.client.model.Credentials
+import org.openapitools.client.model.GetPatchPostPutGroupResponse
+import org.openapitools.client.model.ListGroupsResponse
+import org.openapitools.client.model.Policies
+import org.openapitools.client.model.PolicyS3
+import org.openapitools.client.model.PolicyS3Statement
+import org.openapitools.client.model.PostGroupRequest
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
@@ -70,47 +76,105 @@ class StorageGridServiceReactive(
         return bucketName
     }
 
-    override suspend fun provideGroup(bucketname: String, path: String, access: List<Access>, token: String): String {
+    override suspend fun provideGroup(bucketName: String, path: String, access: List<Access>, token: String): String {
         storageGridGroupsApi.apiClient.setBearerToken(token)
 
-        val groupName: String
-
-        // TODO: FROM fiona
-        policyNamePostfix := ""
-        for _, s := range createAppUserInput.Access {
-            policyNamePostfix += s[0:1]
-        }
-        policyName := fmt.Sprintf("%s_%s_%s", bucket, path, , policyNamePostfix)
-
+        val groupName = createGroupName(bucketName, path, access)
 
         // Get list of buckets for tenant
-        val bucketListResponse = storageGridGroupsApi
-            .orgContainersGet(listOf<String>())
+        val listGroupsResponse = storageGridGroupsApi
+            .orgGroupsGet(null, 100000, null, null, null)
             .awaitSingle()
-        if (bucketListResponse.status === ContainerListResponse.StatusEnum.ERROR) {
+        if (listGroupsResponse.status === ListGroupsResponse.StatusEnum.ERROR) {
             throw ResponseStatusException(
                 HttpStatus.INTERNAL_SERVER_ERROR,
-                "The Storagegrid containers api returned an error on orgContainersGet"
+                "The Storagegrid groups api returned an error on orgGroupsGet"
             )
         }
-        // Check if bucketName exists in bucketListResponse, if not, create
-        val bucketNames: List<String> = bucketListResponse.data.map { it.name }
-        if (!bucketNames.contains(bucketName)) {
-            val containerCreate = ContainerCreate().name(bucketName)
-            val containerCreateResponse = storageGridGroupsApi
-                .orgContainersPost(containerCreate)
+        val groupId: String?
+        // Check if groupName exists in listGroupsResponse, if not, create with policy
+        val groupDisplayNames: List<String> = listGroupsResponse.data.mapNotNull { it.displayName }
+        if (!groupDisplayNames.contains(groupName)) {
+            val bucketStatement = PolicyS3Statement()
+                .effect(PolicyS3Statement.EffectEnum.ALLOW)
+                .addActionItem("s3:ListBucket")
+                .addActionItem("s3:GetBucketLocation")
+                .addResourceItem("arn:aws:s3:::$bucketName/*")
+            val objectActionStatement = createS3ObjectActionStatement(bucketName, path, access)
+
+            val postGroupRequest = PostGroupRequest()
+                .displayName(groupName)
+                .policies(
+                    Policies().s3(
+                        PolicyS3()
+                            .id(groupName)
+                            .addStatementItem(bucketStatement)
+                            .addStatementItem(objectActionStatement)
+                    )
+                )
+            val groupCreateResponse = storageGridGroupsApi
+                .orgGroupsPost(postGroupRequest)
                 .awaitSingle()
-            if (containerCreateResponse.status === ContainerCreateResponse.StatusEnum.ERROR) {
+            if (groupCreateResponse.status === GetPatchPostPutGroupResponse.StatusEnum.ERROR) {
                 throw ResponseStatusException(
                     HttpStatus.INTERNAL_SERVER_ERROR,
-                    "The Storagegrid containers api returned an error on orgContainersPost"
+                    "The Storagegrid groups api returned an error on orgGroupsPost"
                 )
             }
+            groupId = groupCreateResponse.data.id
+        } else {
+            // Find id for matching group
+            groupId = (listGroupsResponse.data.filter { it -> it.displayName == groupName }).first().id
+        }
+        if (groupId == null) {
+            throw ResponseStatusException(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "Could not find or create requested group"
+            )
         }
 
-        return bucketName
+        return groupId
     }
 
+    private fun createGroupName(
+        bucketName: String,
+        path: String,
+        access: List<Access>
+    ): String {
+        var groupNamePostfix = ""
+        if (access.size > 0) {
+            access.forEach { groupNamePostfix += it.name.take(1) }
+        } else groupNamePostfix = "RWD"
+
+        val groupName = "$bucketName-$path-$groupNamePostfix"
+        return groupName
+    }
+
+    private fun createS3ObjectActionStatement(
+        bucketName: String,
+        path: String,
+        access: List<Access>
+    ): PolicyS3Statement {
+        var objectActionStatement = PolicyS3Statement()
+            .effect(PolicyS3Statement.EffectEnum.ALLOW)
+            .addResourceItem("arn:aws:s3:::$bucketName/$path/*")
+        if (access.size <= 0) {
+            objectActionStatement
+                .addActionItem("s3:PutObject")
+                .addActionItem("s3:GetObject")
+                .addActionItem("s3:DeleteObject")
+            return objectActionStatement
+        }
+
+        access.forEach {
+            when (it) {
+                Access.READ -> objectActionStatement.addActionItem("s3:GetObject")
+                Access.WRITE -> objectActionStatement.addActionItem("s3:PutObject")
+                Access.DELETE -> objectActionStatement.addActionItem("s3:DeleteObject")
+            }
+        }
+        return objectActionStatement
+    }
 }
 
 interface StorageGridService {
@@ -118,7 +182,8 @@ interface StorageGridService {
 
     suspend fun provideBucket(bucketName: String, token: String): String = integrationDisabled()
 
-    suspend fun provideGroup(bucketname: String, path: String, access: List<Access>, token: String): String = integrationDisabled()
+    suspend fun provideGroup(bucketName: String, path: String, access: List<Access>, token: String): String =
+        integrationDisabled()
 
     private fun integrationDisabled(): Nothing =
         throw FergusException("StorageGrid integration is disabled for this environment")
