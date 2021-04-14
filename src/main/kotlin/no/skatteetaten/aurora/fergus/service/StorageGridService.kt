@@ -1,5 +1,6 @@
 package no.skatteetaten.aurora.fergus.service
 
+import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
 import no.skatteetaten.aurora.fergus.FergusException
 import no.skatteetaten.aurora.fergus.controllers.Access
@@ -17,6 +18,8 @@ import org.openapitools.client.model.GetPatchPostPutGroupResponse
 import org.openapitools.client.model.GetPatchPostPutUserResponse
 import org.openapitools.client.model.ListGroupsResponse
 import org.openapitools.client.model.ListUsersResponse
+import org.openapitools.client.model.PasswordChangeRequest
+import org.openapitools.client.model.PatchUserRequest
 import org.openapitools.client.model.Policies
 import org.openapitools.client.model.PolicyS3
 import org.openapitools.client.model.PolicyS3Statement
@@ -26,6 +29,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
 import java.util.UUID
+import kotlin.random.nextInt
 
 @Service
 class StorageGridServiceReactive(
@@ -187,7 +191,7 @@ class StorageGridServiceReactive(
         userName: String,
         groupId: UUID,
         token: String
-    ): String {
+    ): UUID {
         storageGridUsersApi.apiClient.setBearerToken(token)
         // Get list of buckets for tenant
         val listUsersResponse = storageGridUsersApi
@@ -200,6 +204,7 @@ class StorageGridServiceReactive(
             )
         }
         // Check if userName exists in listUsersResponse, if not, create
+        val userId: UUID?
         val userNames: List<String> = listUsersResponse.data.mapNotNull { it.fullName }
         if (!userNames.contains(userName)) {
             val postUserRequest = PostUserRequest()
@@ -215,11 +220,63 @@ class StorageGridServiceReactive(
                     "The Storagegrid users api returned an error on orgUsersPost"
                 )
             }
+            userId = userCreateResponse.data.id
         } else {
-            // TODO: Update group membership for user
+            // Update group membership for user
+            userId = (listUsersResponse.data.filter { it -> it.fullName == userName }).first().id
+            val patchUserRequest = PatchUserRequest().fullName(userName).addMemberOfItem(groupId)
+            val patchUserResponse = storageGridUsersApi
+                .orgUsersIdPatch(userId.toString(), patchUserRequest)
+                .awaitSingle()
+            if (patchUserResponse.status === GetPatchPostPutUserResponse.StatusEnum.ERROR) {
+                throw ResponseStatusException(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    "The Storagegrid users api returned an error on orgUsersIdPatch"
+                )
+            }
         }
 
-        return userName
+        if (userId == null) {
+            throw ResponseStatusException(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "Could not find or create requested user"
+            )
+        }
+
+        return userId
+    }
+
+    override suspend fun assignPasswordToUser(
+        userId: UUID,
+        password: String?,
+        token: String
+    ): String {
+        storageGridUsersApi.apiClient.setBearerToken(token)
+        val newPassword: String
+        if (password != null && password.isNotEmpty()) {
+            newPassword = password
+        } else {
+            // TODO: Check for a default password from Aurora config
+            // Generate password
+            newPassword = createRandomPassword()
+        }
+        val passwordChangeRequest = PasswordChangeRequest().password(newPassword)
+        storageGridUsersApi
+            .orgUsersIdChangePasswordPost(userId.toString(), passwordChangeRequest)
+            .awaitFirstOrNull()
+
+        return newPassword
+    }
+
+    private fun createRandomPassword(): String {
+        val charPool: List<Char> = ('a'..'z') + ('A'..'Z') + ('0'..'9')
+
+        val length = 10 + kotlin.random.Random.nextInt(6)
+        val randomString = (1..length)
+            .map { i -> kotlin.random.Random.nextInt(0, charPool.size) }
+            .map(charPool::get)
+            .joinToString("")
+        return randomString
     }
 }
 
@@ -231,7 +288,10 @@ interface StorageGridService {
     suspend fun provideGroup(bucketName: String, path: String, access: List<Access>, token: String): UUID =
         integrationDisabled()
 
-    suspend fun provideUser(userName: String, groupId: UUID, token: String): String =
+    suspend fun provideUser(userName: String, groupId: UUID, token: String): UUID =
+        integrationDisabled()
+
+    suspend fun assignPasswordToUser(userId: UUID, password: String?, token: String): String =
         integrationDisabled()
 
     private fun integrationDisabled(): Nothing =
