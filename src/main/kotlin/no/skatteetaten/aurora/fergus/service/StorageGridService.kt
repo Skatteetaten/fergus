@@ -1,5 +1,6 @@
 package no.skatteetaten.aurora.fergus.service
 
+import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
 import no.skatteetaten.aurora.fergus.FergusException
@@ -8,6 +9,7 @@ import no.skatteetaten.aurora.fergus.controllers.AuthorizationPayload
 import org.openapitools.client.api.AuthApi
 import org.openapitools.client.api.ContainersApi
 import org.openapitools.client.api.GroupsApi
+import org.openapitools.client.api.S3Api
 import org.openapitools.client.api.UsersApi
 import org.openapitools.client.model.AuthorizeResponse
 import org.openapitools.client.model.ContainerCreate
@@ -16,6 +18,7 @@ import org.openapitools.client.model.ContainerListResponse
 import org.openapitools.client.model.Credentials
 import org.openapitools.client.model.GetPatchPostPutGroupResponse
 import org.openapitools.client.model.GetPatchPostPutUserResponse
+import org.openapitools.client.model.InlineObject1
 import org.openapitools.client.model.ListGroupsResponse
 import org.openapitools.client.model.ListUsersResponse
 import org.openapitools.client.model.PasswordChangeRequest
@@ -23,6 +26,7 @@ import org.openapitools.client.model.PatchUserRequest
 import org.openapitools.client.model.Policies
 import org.openapitools.client.model.PolicyS3
 import org.openapitools.client.model.PolicyS3Statement
+import org.openapitools.client.model.PostAccessKeyResponse
 import org.openapitools.client.model.PostGroupRequest
 import org.openapitools.client.model.PostUserRequest
 import org.springframework.beans.factory.annotation.Value
@@ -40,6 +44,7 @@ class StorageGridServiceReactive(
     private val storageGridContainersApi: ContainersApi,
     private val storageGridGroupsApi: GroupsApi,
     private val storageGridUsersApi: UsersApi,
+    private val storageGridS3Api: S3Api,
 ) : StorageGridService {
     override suspend fun authorize(
         authorizationPayload: AuthorizationPayload
@@ -284,6 +289,28 @@ class StorageGridServiceReactive(
             .joinToString("")
         return randomString
     }
+
+    override suspend fun provideS3AccessKeys(
+        userId: UUID,
+        token: String
+    ): S3AccessKeys {
+        storageGridS3Api.apiClient.setBearerToken(token)
+
+        val postAccessKeyResponse = storageGridS3Api
+            .orgUsersUserIdS3AccessKeysPost(userId.toString(), InlineObject1())
+            .awaitFirst()
+        if (postAccessKeyResponse.status === PostAccessKeyResponse.StatusEnum.ERROR) {
+            throw ResponseStatusException(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "The Storagegrid users api returned an error on orgUsersUserIdS3AccessKeysPost"
+            )
+        }
+        if (postAccessKeyResponse.data.accessKey == null || postAccessKeyResponse.data.secretAccessKey == null) {
+            throw FergusException("Did not get S3 access keys")
+        }
+
+        return S3AccessKeys(postAccessKeyResponse.data.accessKey!!, postAccessKeyResponse.data.secretAccessKey!!)
+    }
 }
 
 interface StorageGridService {
@@ -300,6 +327,9 @@ interface StorageGridService {
     suspend fun assignPasswordToUser(userId: UUID, password: String?, token: String): String =
         integrationDisabled()
 
+    suspend fun provideS3AccessKeys(userId: UUID, token: String): S3AccessKeys =
+        integrationDisabled()
+
     private fun integrationDisabled(): Nothing =
         throw FergusException("StorageGrid integration is disabled for this environment")
 }
@@ -308,3 +338,8 @@ fun AuthorizationPayload.toAuthorizeInput(): Credentials = Credentials()
     .accountId(accountId)
     .username(username)
     .password(password)
+
+data class S3AccessKeys(
+    val s3accesskey: String,
+    val s3secretaccesskey: String,
+)

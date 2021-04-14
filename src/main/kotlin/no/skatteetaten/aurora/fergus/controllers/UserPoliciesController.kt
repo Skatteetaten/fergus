@@ -35,11 +35,19 @@ class UserPoliciesController(private val storageGridService: StorageGridService)
         // Verify Group existence and create Group with Policy if not (MVP)
         val groupId = storageGridService.provideGroup(bucketname, path, provisionUserPoliciesPayload.access, token)
         // Verify User existence and create User if not. Assign/Update Group membership (MVP)
-        val user = storageGridService.provideUser(provisionUserPoliciesPayload.username, groupId, token)
+        val userId = storageGridService.provideUser(provisionUserPoliciesPayload.username, groupId, token)
         // Assign specified password to User or generate if null (MVP)
-        val password = storageGridService.assignPasswordToUser(user, provisionUserPoliciesPayload.password, token)
-        // Call SG Man API to create S3 Access Keys for named User (MVP)
-        return ProvisionUserPoliciesResponse(provisionUserPoliciesPayload.username, provisionUserPoliciesPayload.password ?: "password", "host", "accesskey", "secretkey")
+        val password = storageGridService.assignPasswordToUser(userId, provisionUserPoliciesPayload.password, token)
+        // Create S3 Access Keys for User (MVP)
+        val s3keys = storageGridService.provideS3AccessKeys(userId, token)
+
+        return ProvisionUserPoliciesResponse(
+            provisionUserPoliciesPayload.username,
+            password,
+            "host",
+            s3keys.s3accesskey,
+            s3keys.s3secretaccesskey
+        )
     }
 }
 
