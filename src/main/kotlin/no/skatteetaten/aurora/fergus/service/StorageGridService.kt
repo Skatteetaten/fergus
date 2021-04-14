@@ -25,6 +25,7 @@ import org.openapitools.client.model.PolicyS3
 import org.openapitools.client.model.PolicyS3Statement
 import org.openapitools.client.model.PostGroupRequest
 import org.openapitools.client.model.PostUserRequest
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
@@ -33,6 +34,8 @@ import kotlin.random.nextInt
 
 @Service
 class StorageGridServiceReactive(
+    @Value("\${fergus.provision.user.randompass}") val randompass: String,
+    @Value("\${fergus.provision.user.defaultpass}") val defaultpass: String,
     private val storageGridAuthApi: AuthApi,
     private val storageGridContainersApi: ContainersApi,
     private val storageGridGroupsApi: GroupsApi,
@@ -256,9 +259,12 @@ class StorageGridServiceReactive(
         if (password != null && password.isNotEmpty()) {
             newPassword = password
         } else {
-            // TODO: Check for a default password from Aurora config
-            // Generate password
-            newPassword = createRandomPassword()
+            // Check for a default password from Aurora config
+            if (randompass.toBoolean()) {
+                newPassword = createRandomPassword()
+            } else {
+                newPassword = defaultpass
+            }
         }
         val passwordChangeRequest = PasswordChangeRequest().password(newPassword)
         storageGridUsersApi

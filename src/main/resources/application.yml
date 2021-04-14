@@ -19,6 +19,12 @@ logging:
             apache.catalina: WARN
             hibernate: WARN
 
+fergus:
+    provision:
+        user:
+            randompass: ${FERGUS_RANDOMPASS:true}
+            defaultpass: ${FIONA_DEFAULT_PASSWORD:S3userpass}
+
 integrations:
     storagegrid:
         url: http://storagegrid
