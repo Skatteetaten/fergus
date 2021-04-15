@@ -21,7 +21,6 @@ class UserPoliciesController(private val storageGridService: StorageGridService)
         @PathVariable path: String,
         @RequestBody @Valid provisionUserPoliciesPayload: ProvisionUserPoliciesPayload
     ): ProvisionUserPoliciesResponse {
-        // TODO: Implement method - split subtasks into separate providers/services - remove comments when done
         // Call SG Man API to authenticate tenant root user for token (MVP)
         val authorizationPayload = AuthorizationPayload(
             provisionUserPoliciesPayload.tenantAccount.accountId,
@@ -29,7 +28,6 @@ class UserPoliciesController(private val storageGridService: StorageGridService)
             provisionUserPoliciesPayload.tenantAccount.password
         )
         val token = storageGridService.authorize(authorizationPayload)
-
         // Verify Bucket existence and create Bucket if not (MVP)
         storageGridService.provideBucket(bucketname, token)
         // Verify Group existence and create Group with Policy if not (MVP)
@@ -44,7 +42,7 @@ class UserPoliciesController(private val storageGridService: StorageGridService)
         return ProvisionUserPoliciesResponse(
             provisionUserPoliciesPayload.username,
             password,
-            "host",
+            "host",  // TODO: Set up config with host URL to be returned
             s3keys.s3accesskey,
             s3keys.s3secretaccesskey
         )
