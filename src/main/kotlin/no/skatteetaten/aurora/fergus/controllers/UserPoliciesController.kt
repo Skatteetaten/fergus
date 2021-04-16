@@ -42,7 +42,7 @@ class UserPoliciesController(private val storageGridService: StorageGridService)
         return ProvisionUserPoliciesResponse(
             provisionUserPoliciesPayload.username,
             password,
-            "host",  // TODO: Set up config with host URL to be returned
+            "host", // TODO: Set up config with host URL to be returned
             s3keys.s3accesskey,
             s3keys.s3secretaccesskey
         )
