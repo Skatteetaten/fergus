@@ -54,6 +54,6 @@ class UserPoliciesControllerTest : AbstractTestController() {
         mvc.perform(asyncDispatch(mvcResult))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(content().string("{\"username\":\"username\",\"password\":\"passord\",\"host\":\"host\",\"s3accesskey\":\"s3AccessKey\",\"s3secretaccesskey\":\"s3SecretKey\"}"))
+            .andExpect(content().string("{\"username\":\"username\",\"password\":\"passord\",\"host\":\"http://uia0ins-netapp-storagegrid01.skead.no:10880/\",\"s3accesskey\":\"s3AccessKey\",\"s3secretaccesskey\":\"s3SecretKey\"}"))
     }
 }

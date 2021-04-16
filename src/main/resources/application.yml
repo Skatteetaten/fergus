@@ -23,11 +23,12 @@ fergus:
     provision:
         user:
             randompass: ${FERGUS_RANDOMPASS:true}
-            defaultpass: ${FIONA_DEFAULT_PASSWORD:S3userpass}
+            defaultpass: ${FERGUS_DEFAULT_PASSWORD:S3userpass}
 
 integrations:
     storagegrid:
         url: http://storagegrid
+        s3url: ${FERGUS_S3URL:"http://uia0ins-netapp-storagegrid01.skead.no:10880/"}
 
 ---
 
@@ -65,4 +66,5 @@ logging:
 integrations:
     storagegrid:
         url: "https://uia0ins-netapp-storagegrid01.skead.no/"
+        s3url: "http://uia0ins-netapp-storagegrid01.skead.no:10880/"
 

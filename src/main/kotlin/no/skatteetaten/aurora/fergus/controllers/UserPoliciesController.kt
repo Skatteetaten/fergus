@@ -1,6 +1,7 @@
 package no.skatteetaten.aurora.fergus.controllers
 
 import no.skatteetaten.aurora.fergus.service.StorageGridService
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -13,8 +14,10 @@ import javax.validation.Valid
  */
 @RestController
 @RequestMapping("/v1")
-class UserPoliciesController(private val storageGridService: StorageGridService) {
-
+class UserPoliciesController(
+    private val storageGridService: StorageGridService,
+    @Value("\${integrations.storagegrid.s3url}") val s3Url: String,
+) {
     @PostMapping("/buckets/{bucketname}/paths/{path}/userpolicies/")
     suspend fun provisionUserPolicies(
         @PathVariable bucketname: String,
@@ -42,7 +45,7 @@ class UserPoliciesController(private val storageGridService: StorageGridService)
         return ProvisionUserPoliciesResponse(
             provisionUserPoliciesPayload.username,
             password,
-            "host", // TODO: Set up config with host URL to be returned
+            s3Url,
             s3keys.s3accesskey,
             s3keys.s3secretaccesskey
         )
