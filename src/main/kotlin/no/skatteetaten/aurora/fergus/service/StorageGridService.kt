@@ -113,33 +113,7 @@ class StorageGridServiceReactive(
         // Check if groupName exists in listGroupsResponse, if not, create with policy
         val groupDisplayNames: List<String> = listGroupsResponse.data.mapNotNull { it.displayName }
         if (!groupDisplayNames.contains(groupName)) {
-            val bucketStatement = PolicyS3Statement()
-                .effect(PolicyS3Statement.EffectEnum.ALLOW)
-                .addActionItem("s3:ListBucket")
-                .addActionItem("s3:GetBucketLocation")
-                .addResourceItem("arn:aws:s3:::$bucketName/*")
-            val objectActionStatement = createS3ObjectActionStatement(bucketName, path, access)
-
-            val postGroupRequest = PostGroupRequest()
-                .displayName(groupName)
-                .policies(
-                    Policies().s3(
-                        PolicyS3()
-                            .id(groupName)
-                            .addStatementItem(bucketStatement)
-                            .addStatementItem(objectActionStatement)
-                    )
-                )
-            val groupCreateResponse = storageGridGroupsApi
-                .orgGroupsPost(postGroupRequest)
-                .awaitSingle()
-            if (groupCreateResponse.status === GetPatchPostPutGroupResponse.StatusEnum.ERROR) {
-                throw ResponseStatusException(
-                    HttpStatus.INTERNAL_SERVER_ERROR,
-                    "The Storagegrid groups api returned an error on orgGroupsPost"
-                )
-            }
-            groupId = groupCreateResponse.data.id
+            groupId = createGroupWithPolicy(groupName, bucketName, path, access)
         } else {
             // Find id for matching group
             groupId = (listGroupsResponse.data.filter { it -> it.displayName == groupName }).first().id
@@ -153,6 +127,37 @@ class StorageGridServiceReactive(
         }
 
         return UUID.fromString(groupId)
+    }
+
+    private suspend fun createGroupWithPolicy(groupName: String, bucketName: String, path: String, access: List<Access>): String? {
+        val bucketStatement = PolicyS3Statement()
+            .effect(PolicyS3Statement.EffectEnum.ALLOW)
+            .addActionItem("s3:ListBucket")
+            .addActionItem("s3:GetBucketLocation")
+            .addResourceItem("arn:aws:s3:::$bucketName/*")
+        val objectActionStatement = createS3ObjectActionStatement(bucketName, path, access)
+
+        val postGroupRequest = PostGroupRequest()
+            .displayName(groupName)
+            .policies(
+                Policies().s3(
+                    PolicyS3()
+                        .id(groupName)
+                        .addStatementItem(bucketStatement)
+                        .addStatementItem(objectActionStatement)
+                )
+            )
+        val groupCreateResponse = storageGridGroupsApi
+            .orgGroupsPost(postGroupRequest)
+            .awaitSingle()
+        if (groupCreateResponse.status === GetPatchPostPutGroupResponse.StatusEnum.ERROR) {
+            throw ResponseStatusException(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "The Storagegrid groups api returned an error on orgGroupsPost"
+            )
+        }
+
+        return groupCreateResponse.data.id
     }
 
     private fun createGroupName(
@@ -215,33 +220,11 @@ class StorageGridServiceReactive(
         val userId: UUID?
         val userNames: List<String> = listUsersResponse.data.mapNotNull { it.fullName }
         if (!userNames.contains(userName)) {
-            val postUserRequest = PostUserRequest()
-                .fullName(userName)
-                .uniqueName("user/$userName")
-                .addMemberOfItem(groupId)
-            val userCreateResponse = storageGridUsersApi
-                .orgUsersPost(postUserRequest)
-                .awaitSingle()
-            if (userCreateResponse.status === GetPatchPostPutUserResponse.StatusEnum.ERROR) {
-                throw ResponseStatusException(
-                    HttpStatus.INTERNAL_SERVER_ERROR,
-                    "The Storagegrid users api returned an error on orgUsersPost"
-                )
-            }
-            userId = userCreateResponse.data.id
+            userId = createUser(userName, groupId)
         } else {
             // Update group membership for user
             userId = (listUsersResponse.data.filter { it -> it.fullName == userName }).first().id
-            val patchUserRequest = PatchUserRequest().fullName(userName).addMemberOfItem(groupId)
-            val patchUserResponse = storageGridUsersApi
-                .orgUsersIdPatch(userId.toString(), patchUserRequest)
-                .awaitSingle()
-            if (patchUserResponse.status === GetPatchPostPutUserResponse.StatusEnum.ERROR) {
-                throw ResponseStatusException(
-                    HttpStatus.INTERNAL_SERVER_ERROR,
-                    "The Storagegrid users api returned an error on orgUsersIdPatch"
-                )
-            }
+            updateUserGroupMember(userName, groupId, userId)
         }
 
         if (userId == null) {
@@ -252,6 +235,36 @@ class StorageGridServiceReactive(
         }
 
         return userId
+    }
+
+    private suspend fun createUser(userName: String, groupId: UUID): UUID? {
+        val postUserRequest = PostUserRequest()
+            .fullName(userName)
+            .uniqueName("user/$userName")
+            .addMemberOfItem(groupId)
+        val userCreateResponse = storageGridUsersApi
+            .orgUsersPost(postUserRequest)
+            .awaitSingle()
+        if (userCreateResponse.status === GetPatchPostPutUserResponse.StatusEnum.ERROR) {
+            throw ResponseStatusException(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "The Storagegrid users api returned an error on orgUsersPost"
+            )
+        }
+        return userCreateResponse.data.id
+    }
+
+    private suspend fun updateUserGroupMember(userName: String, groupId: UUID, userId: UUID?) {
+        val patchUserRequest = PatchUserRequest().fullName(userName).addMemberOfItem(groupId)
+        val patchUserResponse = storageGridUsersApi
+            .orgUsersIdPatch(userId.toString(), patchUserRequest)
+            .awaitSingle()
+        if (patchUserResponse.status === GetPatchPostPutUserResponse.StatusEnum.ERROR) {
+            throw ResponseStatusException(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "The Storagegrid users api returned an error on orgUsersIdPatch"
+            )
+        }
     }
 
     override suspend fun assignPasswordToUser(

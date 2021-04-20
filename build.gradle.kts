@@ -32,7 +32,6 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.2")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.4.2")
     implementation("io.projectreactor.kotlin:reactor-kotlin-extensions:1.1.2")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.4.2")
 
     // Swagger
     implementation("org.openapitools:jackson-databind-nullable:0.2.1")
