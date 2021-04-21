@@ -6,21 +6,25 @@ import no.skatteetaten.aurora.fergus.controllers.UserPoliciesController
 import no.skatteetaten.aurora.fergus.service.S3AccessKeys
 import no.skatteetaten.aurora.fergus.service.StorageGridService
 import org.junit.jupiter.api.Test
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.autoconfigure.web.reactive.function.client.WebClientAutoConfiguration
+import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
+import org.springframework.context.annotation.Import
 import org.springframework.http.MediaType
-import org.springframework.test.web.servlet.MvcResult
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.asyncDispatch
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.request
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import org.springframework.http.ReactiveHttpOutputMessage
+import org.springframework.test.web.reactive.server.WebTestClient
+import org.springframework.web.reactive.function.BodyInserter
+import org.springframework.web.reactive.function.BodyInserters
 import java.util.UUID
 
-@WebMvcTest(UserPoliciesController::class)
-class UserPoliciesControllerTest : AbstractTestController() {
+@WebFluxTest(UserPoliciesController::class)
+@Import(WebClientAutoConfiguration::class)
+class UserPoliciesControllerTest {
 
     @MockkBean
     private lateinit var storageGridService: StorageGridService
+    @Autowired
+    lateinit var webTestClient: WebTestClient
 
     @Test
     fun bucketsPathsUserpoliciesHappyTest() {
@@ -43,17 +47,19 @@ class UserPoliciesControllerTest : AbstractTestController() {
             storageGridService.provideS3AccessKeys(UUID.fromString("7b579332-87c5-4dc2-9ba0-dfe9dda435c3"), "testtoken")
         } returns S3AccessKeys("s3AccessKey", "s3SecretKey")
 
-        val input =
-            """{"tenantAccount":{"accountId":"accountId","username":"tausername","password":"tapassword"}, "username":"username", "password":"passord", "access":["READ"]}"""
-        val mvcResult: MvcResult = mvc.perform(
-            post("/v1/buckets/bucket-1/paths/path-test/userpolicies/")
-                .contentType("application/json")
-                .content(input)
-        ).andExpect(request().asyncStarted()).andReturn()
-
-        mvc.perform(asyncDispatch(mvcResult))
-            .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(content().string("{\"username\":\"username\",\"password\":\"passord\",\"host\":\"http://uia0ins-netapp-storagegrid01.skead.no:10880/\",\"s3accesskey\":\"s3AccessKey\",\"s3secretaccesskey\":\"s3SecretKey\"}"))
+        webTestClient
+            .post()
+            .uri("/v1/buckets/bucket-1/paths/path-test/userpolicies/")
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(createBody())
+            .exchange()
+            .expectStatus().isOk()
+            .expectHeader().contentType(MediaType.APPLICATION_JSON)
+            .expectBody()
+            .json("{\"username\":\"username\",\"password\":\"passord\",\"host\":\"http://uia0ins-netapp-storagegrid01.skead.no:10880/\",\"s3accesskey\":\"s3AccessKey\",\"s3secretaccesskey\":\"s3SecretKey\"}")
     }
+
+    private fun createBody(): BodyInserter<String, ReactiveHttpOutputMessage> = BodyInserters.fromValue(
+        """{"tenantAccount":{"accountId":"accountId","username":"tausername","password":"tapassword"}, "username":"username", "password":"passord", "access":["READ"]}"""
+    )
 }
