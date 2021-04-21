@@ -29,11 +29,10 @@ class StorageGridServiceAuthorizeTest {
     @Autowired
     lateinit var objectMapper: ObjectMapper
 
-    private lateinit var mockWebServer: MockWebServer
+    private var mockWebServer = MockWebServer()
 
     @BeforeEach
     fun setup() {
-        mockWebServer = MockWebServer()
         mockWebServer.start(9999)
     }
 
@@ -45,6 +44,7 @@ class StorageGridServiceAuthorizeTest {
     @Test
     fun authorizeDeepHappyTest() {
         val mockToken = "test token"
+
         mockWebServer.enqueue(
             MockResponse()
                 .setResponseCode(200)
