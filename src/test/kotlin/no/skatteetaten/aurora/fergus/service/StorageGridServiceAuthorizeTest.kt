@@ -1,9 +1,7 @@
 package no.skatteetaten.aurora.fergus.service
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import kotlinx.coroutines.runBlocking
 import no.skatteetaten.aurora.fergus.controllers.AuthorizationPayload
-import okhttp3.mockwebserver.MockResponse
+import no.skatteetaten.aurora.mockmvc.extensions.mockwebserver.executeBlocking
 import okhttp3.mockwebserver.MockWebServer
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
@@ -14,8 +12,6 @@ import org.openapitools.client.model.AuthorizeResponse.StatusEnum.SUCCESS
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.HttpHeaders.AUTHORIZATION
-import org.springframework.http.HttpHeaders.CONTENT_TYPE
-import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
 
 @SpringBootTest(
     properties = [
@@ -26,8 +22,6 @@ import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
 class StorageGridServiceAuthorizeTest {
     @Autowired
     lateinit var storageGridService: StorageGridService
-    @Autowired
-    lateinit var objectMapper: ObjectMapper
 
     private var mockWebServer = MockWebServer()
 
@@ -38,40 +32,29 @@ class StorageGridServiceAuthorizeTest {
 
     @AfterEach
     fun tearDown() {
-        mockWebServer.shutdown()
+        runCatching { mockWebServer.shutdown() }
     }
 
     @Test
     fun authorizeDeepHappyTest() {
         val mockToken = "test token"
+        val response = AuthorizeResponse().apply {
+            status = SUCCESS
+            data = mockToken
+        }
 
-        mockWebServer.enqueue(
-            MockResponse()
-                .setResponseCode(200)
-                .setHeader(CONTENT_TYPE, APPLICATION_JSON_VALUE)
-                .setBody(
-                    objectMapper.writeValueAsString(
-                        AuthorizeResponse().apply {
-                            status = SUCCESS
-                            data = mockToken
-                        }
-                    )
-                )
-        )
-
-        runBlocking {
+        val request = mockWebServer.executeBlocking(response) {
             val body = AuthorizationPayload(
                 accountId = "testAccount",
                 username = "testUser",
                 password = "testPass",
             )
             val token = storageGridService.authorize(body)
-            val request = mockWebServer.takeRequest()
 
             assertThat(token).isEqualTo(mockToken)
-            assertThat(request.getHeader(AUTHORIZATION)).isEqualTo("aurora-token testToken")
-            assertThat(request.path).isEqualTo("/api/v3/authorize")
-            assertThat(request.body.readUtf8()).isEqualTo(objectMapper.writeValueAsString(body.toAuthorizeInput()))
-        }
+        }.first()!!
+
+        assertThat(request.getHeader(AUTHORIZATION)).isEqualTo("aurora-token testToken")
+        assertThat(request.path).isEqualTo("/api/v3/authorize")
     }
 }

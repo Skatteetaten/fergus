@@ -34,7 +34,6 @@ import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
 import java.util.UUID
-import kotlin.random.nextInt
 
 @Service
 class StorageGridServiceReactive(
@@ -44,7 +43,7 @@ class StorageGridServiceReactive(
     private val storageGridContainersApi: ContainersApi,
     private val storageGridGroupsApi: GroupsApi,
     private val storageGridUsersApi: UsersApi,
-    private val storageGridS3Api: S3Api,
+    private val storageGridS3Api: S3Api
 ) : StorageGridService {
     override suspend fun authorize(
         authorizationPayload: AuthorizationPayload
@@ -129,7 +128,12 @@ class StorageGridServiceReactive(
         return UUID.fromString(groupId)
     }
 
-    private suspend fun createGroupWithPolicy(groupName: String, bucketName: String, path: String, access: List<Access>): String? {
+    private suspend fun createGroupWithPolicy(
+        groupName: String,
+        bucketName: String,
+        path: String,
+        access: List<Access>
+    ): String? {
         val bucketStatement = PolicyS3Statement()
             .effect(PolicyS3Statement.EffectEnum.ALLOW)
             .addActionItem("s3:ListBucket")
