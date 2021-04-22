@@ -108,14 +108,13 @@ class StorageGridServiceReactive(
                 "The Storagegrid groups api returned an error on orgGroupsGet"
             )
         }
-        val groupId: String?
         // Check if groupName exists in listGroupsResponse, if not, create with policy
         val groupDisplayNames: List<String> = listGroupsResponse.data.mapNotNull { it.displayName }
-        if (!groupDisplayNames.contains(groupName)) {
-            groupId = createGroupWithPolicy(groupName, bucketName, path, access)
+        val groupId = if (!groupDisplayNames.contains(groupName)) {
+            createGroupWithPolicy(groupName, bucketName, path, access)
         } else {
             // Find id for matching group
-            groupId = (listGroupsResponse.data.filter { it -> it.displayName == groupName }).first().id
+            (listGroupsResponse.data.filter { it -> it.displayName == groupName }).first().id
         }
 
         if (groupId == null) {
@@ -221,14 +220,14 @@ class StorageGridServiceReactive(
             )
         }
         // Check if userName exists in listUsersResponse, if not, create
-        val userId: UUID?
         val userNames: List<String> = listUsersResponse.data.mapNotNull { it.fullName }
-        if (!userNames.contains(userName)) {
-            userId = createUser(userName, groupId)
+        val userId = if (!userNames.contains(userName)) {
+            createUser(userName, groupId)
         } else {
             // Update group membership for user
-            userId = (listUsersResponse.data.filter { it -> it.fullName == userName }).first().id
-            updateUserGroupMember(userName, groupId, userId)
+            val uId = (listUsersResponse.data.filter { it -> it.fullName == userName }).first().id
+            updateUserGroupMember(userName, groupId, uId)
+            uId
         }
 
         if (userId == null) {
