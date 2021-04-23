@@ -6,7 +6,6 @@ def config = [
     iqOrganizationName         : 'Team AOS',
     compilePropertiesIq        : "-x test",
     pipelineScript             : 'https://git.aurora.skead.no/scm/ao/aurora-pipeline-scripts.git',
-//    downstreamSystemtestJob    : [branch: env.BRANCH_NAME],
     credentialsId              : "github",
     javaVersion                : 11,
     nodeVersion                : '10',

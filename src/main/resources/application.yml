@@ -48,11 +48,6 @@ spring:
         activate:
             on-profile: local
 
-#    datasource:
-#        url: ${refapp.datasource.url:jdbc:oracle:thin:@host:port/path}
-#        username: ${refapp.datasource.username:username}
-#        password: ${refapp.datasource.password:password}
-
 aurora.token.value: token
 
 management:

@@ -2,7 +2,7 @@
   "docker": {
     "maintainer": "Aurora OpenShift Utvikling <utvpaas@skatteetaten.no>",
     "labels": {
-      "io.k8s.description": "Demo application with spring boot on Openshift.",
+      "io.k8s.description": "Fergus is a facade application for StorageGRID S3 Management.",
       "io.openshift.tags": "openshift,springboot"
     }
   },
