@@ -8,7 +8,6 @@ def config = [
     pipelineScript             : 'https://git.aurora.skead.no/scm/ao/aurora-pipeline-scripts.git',
     credentialsId              : "github",
     javaVersion                : 11,
-    nodeVersion                : '10',
     jiraFiksetIKomponentversjon: true,
     chatRoom                   : "#aos-notifications",
     versionStrategy            : [
