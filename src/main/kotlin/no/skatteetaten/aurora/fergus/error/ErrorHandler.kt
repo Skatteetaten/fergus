@@ -49,16 +49,14 @@ class ErrorHandler : WebExceptionHandler {
     private fun handleException(
         e: Throwable,
         exchange: ServerWebExchange,
-        status: HttpStatus = INTERNAL_SERVER_ERROR
-    ): Mono<Void> {
-
-        val error = jacksonObjectMapper().writeValueAsString(
+        error: String = jacksonObjectMapper().writeValueAsString(
             GenericErrorResponse(
                 e.message ?: "Unknown Error",
                 e.cause?.message
             )
-        )
-
+        ),
+        status: HttpStatus = INTERNAL_SERVER_ERROR
+    ): Mono<Void> {
         logger.error(e) { "Error in request" }
 
         exchange.response.headers.putAll(standardHeaders())
