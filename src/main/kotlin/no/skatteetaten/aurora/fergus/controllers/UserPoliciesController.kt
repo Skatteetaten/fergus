@@ -17,6 +17,7 @@ import javax.validation.Valid
 class UserPoliciesController(
     private val storageGridService: StorageGridService,
     @Value("\${integrations.storagegrid.s3url}") val s3Url: String,
+
 ) {
     @PostMapping("/buckets/{bucketname}/paths/{path}/userpolicies/")
     suspend fun provisionUserPolicies(

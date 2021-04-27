@@ -11,7 +11,6 @@ import org.openapitools.client.model.AuthorizeResponse
 import org.openapitools.client.model.AuthorizeResponse.StatusEnum.SUCCESS
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.http.HttpHeaders.AUTHORIZATION
 
 @SpringBootTest(
     properties = [
@@ -54,7 +53,6 @@ class StorageGridServiceAuthorizeTest {
             assertThat(token).isEqualTo(mockToken)
         }.first()!!
 
-        assertThat(request.getHeader(AUTHORIZATION)).isEqualTo("aurora-token testToken")
         assertThat(request.path).isEqualTo("/api/v3/authorize")
     }
 }

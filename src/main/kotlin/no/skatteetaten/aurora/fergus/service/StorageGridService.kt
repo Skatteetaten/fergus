@@ -7,7 +7,6 @@ import no.skatteetaten.aurora.fergus.FergusException
 import no.skatteetaten.aurora.fergus.controllers.Access
 import no.skatteetaten.aurora.fergus.controllers.AuthorizationPayload
 import org.openapitools.client.api.AuthApi
-import org.openapitools.client.api.ContainersApi
 import org.openapitools.client.api.GroupsApi
 import org.openapitools.client.api.S3Api
 import org.openapitools.client.api.UsersApi
@@ -40,15 +39,16 @@ class StorageGridServiceReactive(
     @Value("\${fergus.provision.user.randompass}") val randompass: String,
     @Value("\${fergus.provision.user.defaultpass}") val defaultpass: String,
     private val storageGridAuthApi: AuthApi,
-    private val storageGridContainersApi: ContainersApi,
+    private val storageGridApiFactory: StorageGridApiFactory,
     private val storageGridGroupsApi: GroupsApi,
     private val storageGridUsersApi: UsersApi,
     private val storageGridS3Api: S3Api
 ) : StorageGridService {
+
     override suspend fun authorize(
         authorizationPayload: AuthorizationPayload
     ): String {
-        val response: AuthorizeResponse = storageGridAuthApi
+        val response: AuthorizeResponse = storageGridApiFactory.storageGridAuthApi()
             .authorizePost(authorizationPayload.toAuthorizeInput())
             .awaitSingle()
         if (response.status === AuthorizeResponse.StatusEnum.ERROR) {
@@ -64,7 +64,7 @@ class StorageGridServiceReactive(
         bucketName: String,
         token: String
     ): String {
-        storageGridContainersApi.apiClient.setBearerToken(token)
+        val storageGridContainersApi = storageGridApiFactory.storageGridContainersApi(token)
         // Get list of buckets for tenant
         val bucketListResponse = storageGridContainersApi
             .orgContainersGet(listOf<String>())

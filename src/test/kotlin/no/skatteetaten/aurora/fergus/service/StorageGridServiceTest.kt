@@ -41,13 +41,14 @@ class StorageGridServiceTest {
     private val storageGridGroupsApi: GroupsApi = mockk()
     private val storageGridUsersApi: UsersApi = mockk()
     private val storageGridS3Api: S3Api = mockk()
+    private val storageGridApiFactory: StorageGridApiFactory = mockk()
     private val apiClient: ApiClient = mockk(null, true)
 
     private val storageGridService = StorageGridServiceReactive(
         "false",
         "defaultpassword",
         storageGridAuthApi,
-        storageGridContainersApi,
+        storageGridApiFactory,
         storageGridGroupsApi,
         storageGridUsersApi,
         storageGridS3Api
@@ -62,6 +63,10 @@ class StorageGridServiceTest {
     fun authorizeHappyTest() {
         val mockToken = "testtoken"
         val authorizeResponse = AuthorizeResponse().status(AuthorizeResponse.StatusEnum.SUCCESS).data(mockToken)
+
+        every {
+            storageGridApiFactory.storageGridAuthApi()
+        } returns storageGridAuthApi
 
         coEvery {
             storageGridAuthApi.authorizePost(any())
@@ -85,8 +90,8 @@ class StorageGridServiceTest {
         val bucketName = "bucket-1"
 
         every {
-            storageGridContainersApi.getApiClient()
-        } returns apiClient
+            storageGridApiFactory.storageGridContainersApi(any())
+        } returns storageGridContainersApi
 
         val containerListResponse = ContainerListResponse()
             .status(ContainerListResponse.StatusEnum.SUCCESS)
