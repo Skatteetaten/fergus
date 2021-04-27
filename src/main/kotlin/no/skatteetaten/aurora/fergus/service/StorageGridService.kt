@@ -6,9 +6,7 @@ import kotlinx.coroutines.reactive.awaitSingle
 import no.skatteetaten.aurora.fergus.FergusException
 import no.skatteetaten.aurora.fergus.controllers.Access
 import no.skatteetaten.aurora.fergus.controllers.AuthorizationPayload
-import org.openapitools.client.api.AuthApi
 import org.openapitools.client.api.GroupsApi
-import org.openapitools.client.api.S3Api
 import org.openapitools.client.api.UsersApi
 import org.openapitools.client.model.AuthorizeResponse
 import org.openapitools.client.model.ContainerCreate
@@ -38,11 +36,7 @@ import java.util.UUID
 class StorageGridServiceReactive(
     @Value("\${fergus.provision.user.randompass}") val randompass: String,
     @Value("\${fergus.provision.user.defaultpass}") val defaultpass: String,
-    private val storageGridAuthApi: AuthApi,
     private val storageGridApiFactory: StorageGridApiFactory,
-    private val storageGridGroupsApi: GroupsApi,
-    private val storageGridUsersApi: UsersApi,
-    private val storageGridS3Api: S3Api
 ) : StorageGridService {
 
     override suspend fun authorize(
@@ -94,8 +88,7 @@ class StorageGridServiceReactive(
     }
 
     override suspend fun provideGroup(bucketName: String, path: String, access: List<Access>, token: String): UUID {
-        storageGridGroupsApi.apiClient.setBearerToken(token)
-
+        val storageGridGroupsApi = storageGridApiFactory.storageGridGroupsApi(token)
         val groupName = createGroupName(bucketName, path, access)
 
         // Get list of buckets for tenant
@@ -111,7 +104,7 @@ class StorageGridServiceReactive(
         // Check if groupName exists in listGroupsResponse, if not, create with policy
         val groupDisplayNames: List<String> = listGroupsResponse.data.mapNotNull { it.displayName }
         val groupId = if (!groupDisplayNames.contains(groupName)) {
-            createGroupWithPolicy(groupName, bucketName, path, access)
+            createGroupWithPolicy(groupName, bucketName, path, access, storageGridGroupsApi)
         } else {
             // Find id for matching group
             (listGroupsResponse.data.filter { it -> it.displayName == groupName }).first().id
@@ -131,7 +124,8 @@ class StorageGridServiceReactive(
         groupName: String,
         bucketName: String,
         path: String,
-        access: List<Access>
+        access: List<Access>,
+        storageGridGroupsApi: GroupsApi
     ): String? {
         val bucketStatement = PolicyS3Statement()
             .effect(PolicyS3Statement.EffectEnum.ALLOW)
@@ -208,7 +202,7 @@ class StorageGridServiceReactive(
         groupId: UUID,
         token: String
     ): UUID {
-        storageGridUsersApi.apiClient.setBearerToken(token)
+        val storageGridUsersApi = storageGridApiFactory.storageGridUsersApi(token)
         // Get list of buckets for tenant
         val listUsersResponse = storageGridUsersApi
             .orgUsersGet(null, 100000, null, null, null)
@@ -222,11 +216,11 @@ class StorageGridServiceReactive(
         // Check if userName exists in listUsersResponse, if not, create
         val userNames: List<String> = listUsersResponse.data.mapNotNull { it.fullName }
         val userId = if (!userNames.contains(userName)) {
-            createUser(userName, groupId)
+            createUser(userName, groupId, storageGridUsersApi)
         } else {
             // Update group membership for user
             val uId = (listUsersResponse.data.filter { it -> it.fullName == userName }).first().id
-            updateUserGroupMember(userName, groupId, uId)
+            updateUserGroupMember(userName, groupId, uId, storageGridUsersApi)
             uId
         }
 
@@ -240,7 +234,7 @@ class StorageGridServiceReactive(
         return userId
     }
 
-    private suspend fun createUser(userName: String, groupId: UUID): UUID? {
+    private suspend fun createUser(userName: String, groupId: UUID, storageGridUsersApi: UsersApi): UUID? {
         val postUserRequest = PostUserRequest()
             .fullName(userName)
             .uniqueName("user/$userName")
@@ -257,7 +251,7 @@ class StorageGridServiceReactive(
         return userCreateResponse.data.id
     }
 
-    private suspend fun updateUserGroupMember(userName: String, groupId: UUID, userId: UUID?) {
+    private suspend fun updateUserGroupMember(userName: String, groupId: UUID, userId: UUID?, storageGridUsersApi: UsersApi) {
         val patchUserRequest = PatchUserRequest().fullName(userName).addMemberOfItem(groupId)
         val patchUserResponse = storageGridUsersApi
             .orgUsersIdPatch(userId.toString(), patchUserRequest)
@@ -275,7 +269,7 @@ class StorageGridServiceReactive(
         password: String?,
         token: String
     ): String {
-        storageGridUsersApi.apiClient.setBearerToken(token)
+        val storageGridUsersApi = storageGridApiFactory.storageGridUsersApi(token)
         val newPassword: String
         if (password != null && password.isNotEmpty()) {
             newPassword = password
@@ -310,8 +304,7 @@ class StorageGridServiceReactive(
         userId: UUID,
         token: String
     ): S3AccessKeys {
-        storageGridS3Api.apiClient.setBearerToken(token)
-
+        val storageGridS3Api = storageGridApiFactory.storageGridS3Api(token)
         val postAccessKeyResponse = storageGridS3Api
             .orgUsersUserIdS3AccessKeysPost(userId.toString(), InlineObject1())
             .awaitFirst()

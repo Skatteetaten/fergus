@@ -47,11 +47,7 @@ class StorageGridServiceTest {
     private val storageGridService = StorageGridServiceReactive(
         "false",
         "defaultpassword",
-        storageGridAuthApi,
-        storageGridApiFactory,
-        storageGridGroupsApi,
-        storageGridUsersApi,
-        storageGridS3Api
+        storageGridApiFactory
     )
 
     @BeforeEach
@@ -125,8 +121,8 @@ class StorageGridServiceTest {
         val groupId = UUID.randomUUID()
 
         every {
-            storageGridGroupsApi.getApiClient()
-        } returns apiClient
+            storageGridApiFactory.storageGridGroupsApi(any())
+        } returns storageGridGroupsApi
 
         val listGroupsResponse = ListGroupsResponse()
             .status(ListGroupsResponse.StatusEnum.SUCCESS)
@@ -162,8 +158,8 @@ class StorageGridServiceTest {
         val userId = UUID.randomUUID()
 
         every {
-            storageGridUsersApi.getApiClient()
-        } returns apiClient
+            storageGridApiFactory.storageGridUsersApi(any())
+        } returns storageGridUsersApi
 
         val listUsersResponse = ListUsersResponse()
             .status(ListUsersResponse.StatusEnum.SUCCESS)
@@ -198,8 +194,8 @@ class StorageGridServiceTest {
         val password = "password"
 
         every {
-            storageGridUsersApi.getApiClient()
-        } returns apiClient
+            storageGridApiFactory.storageGridUsersApi(any())
+        } returns storageGridUsersApi
 
         coEvery {
             storageGridUsersApi.orgUsersIdChangePasswordPost(userId.toString(), any())
@@ -218,8 +214,8 @@ class StorageGridServiceTest {
         val userId = UUID.randomUUID()
 
         every {
-            storageGridUsersApi.getApiClient()
-        } returns apiClient
+            storageGridApiFactory.storageGridUsersApi(any())
+        } returns storageGridUsersApi
 
         coEvery {
             storageGridUsersApi.orgUsersIdChangePasswordPost(userId.toString(), any())
@@ -240,8 +236,8 @@ class StorageGridServiceTest {
         val secretAccessKey = "secretOhSoSecret"
 
         every {
-            storageGridS3Api.getApiClient()
-        } returns apiClient
+            storageGridApiFactory.storageGridS3Api(any())
+        } returns storageGridS3Api
 
         val s3AccessKeyResponse = PostAccessKeyResponse()
             .status(PostAccessKeyResponse.StatusEnum.SUCCESS)

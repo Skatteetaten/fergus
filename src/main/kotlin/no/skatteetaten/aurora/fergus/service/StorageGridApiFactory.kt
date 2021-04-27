@@ -11,6 +11,9 @@ import mu.KotlinLogging
 import org.openapitools.client.ApiClient
 import org.openapitools.client.api.AuthApi
 import org.openapitools.client.api.ContainersApi
+import org.openapitools.client.api.GroupsApi
+import org.openapitools.client.api.S3Api
+import org.openapitools.client.api.UsersApi
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
@@ -43,6 +46,24 @@ class StorageGridApiFactory(
         val apiClient = createStorageGridApiClient()
         apiClient.setBearerToken(token)
         return ContainersApi(apiClient)
+    }
+
+    fun storageGridS3Api(token: String): S3Api {
+        val apiClient = createStorageGridApiClient()
+        apiClient.setBearerToken(token)
+        return S3Api(apiClient)
+    }
+
+    fun storageGridGroupsApi(token: String): GroupsApi {
+        val apiClient = createStorageGridApiClient()
+        apiClient.setBearerToken(token)
+        return GroupsApi(apiClient)
+    }
+
+    fun storageGridUsersApi(token: String): UsersApi {
+        val apiClient = createStorageGridApiClient()
+        apiClient.setBearerToken(token)
+        return UsersApi(apiClient)
     }
 
     fun createStorageGridApiClient(): ApiClient {
