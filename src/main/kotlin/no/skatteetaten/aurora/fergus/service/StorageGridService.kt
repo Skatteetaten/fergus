@@ -26,6 +26,7 @@ import org.openapitools.client.model.PolicyS3Statement
 import org.openapitools.client.model.PostAccessKeyResponse
 import org.openapitools.client.model.PostGroupRequest
 import org.openapitools.client.model.PostUserRequest
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
@@ -36,7 +37,7 @@ import java.util.UUID
 class StorageGridServiceReactive(
     @Value("\${fergus.provision.user.randompass}") val randompass: String,
     @Value("\${fergus.provision.user.defaultpass}") val defaultpass: String,
-    private val storageGridApiFactory: StorageGridApiFactory,
+    @Autowired private val storageGridApiFactory: StorageGridApiFactory,
 ) : StorageGridService {
 
     override suspend fun authorize(

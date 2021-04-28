@@ -42,38 +42,28 @@ class StorageGridApiFactory(
 
     fun storageGridAuthApi(): AuthApi = AuthApi(createStorageGridApiClient())
 
-    fun storageGridContainersApi(token: String): ContainersApi {
+    fun storageGridContainersApi(token: String): ContainersApi = ContainersApi(apiClientForToken(token))
+
+    fun storageGridS3Api(token: String): S3Api = S3Api(apiClientForToken(token))
+
+    fun storageGridGroupsApi(token: String): GroupsApi = GroupsApi(apiClientForToken(token))
+
+    fun storageGridUsersApi(token: String): UsersApi = UsersApi(apiClientForToken(token))
+
+    private fun apiClientForToken(token: String): ApiClient {
         val apiClient = createStorageGridApiClient()
         apiClient.setBearerToken(token)
-        return ContainersApi(apiClient)
+        return apiClient
     }
 
-    fun storageGridS3Api(token: String): S3Api {
-        val apiClient = createStorageGridApiClient()
-        apiClient.setBearerToken(token)
-        return S3Api(apiClient)
-    }
-
-    fun storageGridGroupsApi(token: String): GroupsApi {
-        val apiClient = createStorageGridApiClient()
-        apiClient.setBearerToken(token)
-        return GroupsApi(apiClient)
-    }
-
-    fun storageGridUsersApi(token: String): UsersApi {
-        val apiClient = createStorageGridApiClient()
-        apiClient.setBearerToken(token)
-        return UsersApi(apiClient)
-    }
-
-    fun createStorageGridApiClient(): ApiClient {
+    private fun createStorageGridApiClient(): ApiClient {
         val client = ApiClient(builder.init().build(), objectMapper, dateFormat)
         client.basePath = "$storageGridUrl${client.basePath.substringAfter("localhost")}"
 
         return client
     }
 
-    fun WebClient.Builder.init() =
+    private fun WebClient.Builder.init() =
         this.defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
             .filter(
                 ExchangeFilterFunction.ofRequestProcessor {
@@ -89,7 +79,7 @@ class StorageGridApiFactory(
             )
             .clientConnector(clientConnector(true))
 
-    fun clientConnector(ssl: Boolean = false): ReactorClientHttpConnector {
+    private fun clientConnector(ssl: Boolean = false): ReactorClientHttpConnector {
         val httpClient =
             HttpClient.create().compress(true)
                 .tcpConfiguration {
