@@ -49,7 +49,7 @@ class StorageGridServiceReactive(
         if (response.status === AuthorizeResponse.StatusEnum.ERROR) {
             throw ResponseStatusException(
                 HttpStatus.INTERNAL_SERVER_ERROR,
-                "The Storagegrid auth api returned an error"
+                "The Storagegrid auth api returned an error on authorizePost"
             )
         }
         return response.data // Returns authorization token
@@ -109,13 +109,6 @@ class StorageGridServiceReactive(
         } else {
             // Find id for matching group
             (listGroupsResponse.data.filter { it -> it.displayName == groupName }).first().id
-        }
-
-        if (groupId == null) {
-            throw ResponseStatusException(
-                HttpStatus.INTERNAL_SERVER_ERROR,
-                "Could not find or create requested group"
-            )
         }
 
         return UUID.fromString(groupId)
@@ -312,7 +305,7 @@ class StorageGridServiceReactive(
         if (postAccessKeyResponse.status === PostAccessKeyResponse.StatusEnum.ERROR) {
             throw ResponseStatusException(
                 HttpStatus.INTERNAL_SERVER_ERROR,
-                "The Storagegrid users api returned an error on orgUsersUserIdS3AccessKeysPost"
+                "The Storagegrid S3 api returned an error on orgUsersUserIdS3AccessKeysPost"
             )
         }
         if (postAccessKeyResponse.data.accessKey == null || postAccessKeyResponse.data.secretAccessKey == null) {
