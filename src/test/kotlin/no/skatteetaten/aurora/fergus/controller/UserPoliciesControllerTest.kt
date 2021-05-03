@@ -50,7 +50,7 @@ class UserPoliciesControllerTest {
 
         webTestClient
             .post()
-            .uri("/v1/buckets/bucket-1/paths/path-test/userpolicies/")
+            .uri("/v1/buckets/bucket-1/paths/path-test/userpolicies")
             .contentType(MediaType.APPLICATION_JSON)
             .body(createBody())
             .exchange()

@@ -1,7 +1,10 @@
 package no.skatteetaten.aurora.fergus.error
 
+import assertk.assertThat
+import assertk.assertions.contains
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.coEvery
+import no.skatteetaten.aurora.fergus.controllers.AuthorizationController
 import no.skatteetaten.aurora.fergus.controllers.UserPoliciesController
 import no.skatteetaten.aurora.fergus.service.StorageGridService
 import org.junit.jupiter.api.Test
@@ -18,7 +21,7 @@ import org.springframework.web.reactive.function.BodyInserter
 import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.server.ResponseStatusException
 
-@WebFluxTest(UserPoliciesController::class)
+@WebFluxTest(UserPoliciesController::class, AuthorizationController::class)
 @Import(WebClientAutoConfiguration::class)
 class ErrorHandlerTest {
     @MockkBean
@@ -28,7 +31,7 @@ class ErrorHandlerTest {
 
     @Test
     fun `Testing that ErrorHandler catches ResponseStatusException`() {
-        val responseStatusException = ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "The reason it occurred")
+        val responseStatusException = ResponseStatusException(HttpStatus.CONFLICT, "The reason it occurred")
         coEvery {
             storageGridService.authorize(any())
         } throws (responseStatusException)
@@ -39,7 +42,7 @@ class ErrorHandlerTest {
             .contentType(MediaType.APPLICATION_JSON)
             .body(createUserPoliciesBody())
             .exchange()
-            .expectStatus().is5xxServerError()
+            .expectStatus().is4xxClientError()
             .expectBody()
             .returnResult().toString().contains("The reason it occurred")
     }
@@ -48,20 +51,27 @@ class ErrorHandlerTest {
         """{"tenantAccount":{"accountId":"accountId","username":"tausername","password":"tapassword"}, "username":"username", "password":"passord", "access":["READ"]}"""
     )
 
-    // TODO: @Test
+    @Test
     fun `Testing that ErrorHandler catches generic exception`() {
         val exception = Exception("The reason it occurred")
         coEvery {
             storageGridService.authorize(any())
         } throws (exception)
 
-        webTestClient
+        val resultstring = webTestClient
             .post()
-            .uri("/v1/authorize/")
+            .uri("/v1/authorize")
             .contentType(MediaType.APPLICATION_JSON)
+            .body(createAuthorizeBody())
             .exchange()
             .expectStatus().is5xxServerError()
+            .expectHeader().contentType(MediaType.APPLICATION_JSON)
             .expectBody()
-            .returnResult().toString().contains("The reason it occurred")
+            .returnResult().toString()
+        assertThat(resultstring).contains("The reason it occurred")
     }
+
+    private fun createAuthorizeBody(): BodyInserter<String, ReactiveHttpOutputMessage> = BodyInserters.fromValue(
+        """{"accountId":"accountId","username":"tausername","password":"tapassword"}"""
+    )
 }
