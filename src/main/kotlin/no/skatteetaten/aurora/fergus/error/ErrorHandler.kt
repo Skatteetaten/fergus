@@ -1,6 +1,6 @@
 package no.skatteetaten.aurora.fergus.error
 
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.databind.ObjectMapper
 import mu.KotlinLogging
 import org.springframework.core.annotation.Order
 import org.springframework.http.HttpHeaders
@@ -26,7 +26,7 @@ data class GenericErrorResponse(
 @Suppress("unused")
 @Component
 @Order(-2)
-class ErrorHandler : WebExceptionHandler {
+class ErrorHandler(private val objectMapper: ObjectMapper) : WebExceptionHandler {
     override fun handle(exchange: ServerWebExchange, ex: Throwable): Mono<Void> = when (ex) {
         is ResponseStatusException -> handleResponseException(ex, exchange)
         is IllegalArgumentException -> handleException(ex, exchange, status = BAD_REQUEST)
@@ -49,7 +49,7 @@ class ErrorHandler : WebExceptionHandler {
     private fun handleException(
         e: Throwable,
         exchange: ServerWebExchange,
-        error: String = jacksonObjectMapper().writeValueAsString(
+        error: String = objectMapper.writeValueAsString(
             GenericErrorResponse(
                 e.message ?: "Unknown Error",
                 e.cause?.message
