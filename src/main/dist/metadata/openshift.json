@@ -7,7 +7,7 @@
     }
   },
   "java": {
-    "mainClass": "no.skatteetaten.aurora.openshift.reference.springboot.Main",
+    "mainClass": "no.skatteetaten.aurora.fergus.Main",
     "jvmOpts": "-Dspring.profiles.active=openshift",
     "applicationArgs": "--logging.config=${LOGBACK_FILE}"
   }
