@@ -1,6 +1,4 @@
 info:
-    serviceLinks:
-        api-doc: "${route.name}/docs/index.html"
     dependencies:
         skatteetaten: "skatteetaten"
 
