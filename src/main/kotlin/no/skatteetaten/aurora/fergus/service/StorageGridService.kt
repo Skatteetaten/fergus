@@ -157,7 +157,7 @@ class StorageGridServiceReactive(
         access: List<Access>
     ): String {
         var groupNamePostfix = ""
-        if (access.size > 0) {
+        if (access.isNotEmpty()) {
             access.forEach { groupNamePostfix += it.name.take(1) }
         } else groupNamePostfix = "RWD"
 
@@ -170,10 +170,10 @@ class StorageGridServiceReactive(
         path: String,
         access: List<Access>
     ): PolicyS3Statement {
-        var objectActionStatement = PolicyS3Statement()
+        val objectActionStatement = PolicyS3Statement()
             .effect(PolicyS3Statement.EffectEnum.ALLOW)
             .addResourceItem("arn:aws:s3:::$bucketName/$path/*")
-        if (access.size <= 0) {
+        if (access.isEmpty()) {
             objectActionStatement
                 .addActionItem("s3:PutObject")
                 .addActionItem("s3:GetObject")
@@ -197,7 +197,7 @@ class StorageGridServiceReactive(
         token: String
     ): UUID {
         val storageGridUsersApi = storageGridApiFactory.storageGridUsersApi(token)
-        // Get list of buckets for tenant
+        // Get list of users for tenant
         val listUsersResponse = storageGridUsersApi
             .orgUsersGet(null, 100000, null, null, null)
             .awaitSingle()
