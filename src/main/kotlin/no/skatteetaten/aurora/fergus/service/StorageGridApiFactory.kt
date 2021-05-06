@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import io.netty.channel.ChannelOption
 import io.netty.handler.ssl.SslContext
 import io.netty.handler.ssl.SslContextBuilder
-import io.netty.handler.ssl.util.InsecureTrustManagerFactory
 import io.netty.handler.timeout.ReadTimeoutHandler
 import io.netty.handler.timeout.WriteTimeoutHandler
 import mu.KotlinLogging
@@ -14,6 +13,7 @@ import org.openapitools.client.api.ContainersApi
 import org.openapitools.client.api.GroupsApi
 import org.openapitools.client.api.S3Api
 import org.openapitools.client.api.UsersApi
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
@@ -23,8 +23,10 @@ import org.springframework.web.reactive.function.client.ExchangeFilterFunction
 import org.springframework.web.reactive.function.client.WebClient
 import reactor.kotlin.core.publisher.toMono
 import reactor.netty.http.client.HttpClient
+import java.security.KeyStore
 import java.text.DateFormat
 import java.util.concurrent.TimeUnit
+import javax.net.ssl.TrustManagerFactory
 import kotlin.math.min
 
 private val logger = KotlinLogging.logger {}
@@ -37,7 +39,8 @@ class StorageGridApiFactory(
     private val objectMapper: ObjectMapper,
     private val builder: WebClient.Builder,
     private val dateFormat: DateFormat,
-    @Value("\${integrations.storagegrid.url}") val storageGridUrl: String
+    @Value("\${integrations.storagegrid.url}") val storageGridUrl: String,
+    @Autowired private val trustStore: KeyStore?
 ) {
 
     fun storageGridAuthApi(): AuthApi = AuthApi(createStorageGridApiClient())
@@ -91,10 +94,13 @@ class StorageGridApiFactory(
                 }
 
         if (ssl) {
+            val trustFactory = TrustManagerFactory.getInstance("X509")
+            trustFactory.init(trustStore)
             val sslContext: SslContext = SslContextBuilder
                 .forClient()
-                .trustManager(InsecureTrustManagerFactory.INSTANCE)
+                .trustManager(trustFactory)
                 .build()
+
             return ReactorClientHttpConnector(httpClient.secure { it.sslContext(sslContext) })
         }
 
