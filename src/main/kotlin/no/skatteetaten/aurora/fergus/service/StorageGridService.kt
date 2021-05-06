@@ -17,7 +17,6 @@ import org.openapitools.client.model.GetPatchPostPutGroupResponse
 import org.openapitools.client.model.GetPatchPostPutUserResponse
 import org.openapitools.client.model.InlineObject1
 import org.openapitools.client.model.ListGroupsResponse
-import org.openapitools.client.model.ListUsersResponse
 import org.openapitools.client.model.PasswordChangeRequest
 import org.openapitools.client.model.PatchUserRequest
 import org.openapitools.client.model.Policies
@@ -94,6 +93,7 @@ class StorageGridServiceReactive(
         val displayGroupName = createDisplayGroupName(bucketName, path, access)
 
         // Get list of buckets for tenant
+        // TODO: Replace with storageGridGroupsApi.orgGroupsGroupShortNameGet()
         val listGroupsResponse = storageGridGroupsApi
             .orgGroupsGet(null, 100000, null, null, null)
             .awaitSingle()
@@ -226,22 +226,22 @@ class StorageGridServiceReactive(
     ): UUID {
         val storageGridUsersApi = storageGridApiFactory.storageGridUsersApi(token)
         // Get list of users for tenant
-        val listUsersResponse = storageGridUsersApi
-            .orgUsersGet(null, 100000, null, null, null)
+        val getUsersResponse = storageGridUsersApi
+            .orgUsersUserShortNameGet(userName)
             .awaitSingle()
-        if (listUsersResponse.status === ListUsersResponse.StatusEnum.ERROR) {
+        if (getUsersResponse.status === GetPatchPostPutUserResponse.StatusEnum.ERROR) {
             throw ResponseStatusException(
                 HttpStatus.INTERNAL_SERVER_ERROR,
-                "The Storagegrid users api returned an error on orgUsersGet"
+                "The Storagegrid users api returned an error on orgUsersUserShortNameGet"
             )
         }
+
         // Check if userName exists in listUsersResponse, if not, create
-        val userNames: List<String> = listUsersResponse.data.mapNotNull { it.fullName }
-        val userId = if (!userNames.contains(userName)) {
+        val userId = if (!getUsersResponse.data.uniqueName.equals("user/$userName")) {
             createUser(userName, groupId, storageGridUsersApi)
         } else {
             // Update group membership for user
-            val uId = (listUsersResponse.data.filter { it -> it.fullName == userName }).first().id
+            val uId = getUsersResponse.data.id
             updateUserGroupMember(userName, groupId, uId, storageGridUsersApi)
             uId
         }

@@ -30,7 +30,6 @@ import org.openapitools.client.model.GetPatchPostPutGroupResponse
 import org.openapitools.client.model.GetPatchPostPutUserResponse
 import org.openapitools.client.model.Group
 import org.openapitools.client.model.ListGroupsResponse
-import org.openapitools.client.model.ListUsersResponse
 import org.openapitools.client.model.PostAccessKeyResponse
 import org.openapitools.client.model.S3AccessKeyWithSecrets
 import org.openapitools.client.model.User
@@ -304,12 +303,12 @@ class StorageGridServiceTest {
             storageGridApiFactory.storageGridUsersApi(any())
         } returns storageGridUsersApi
 
-        val listUsersResponse = ListUsersResponse()
-            .status(ListUsersResponse.StatusEnum.SUCCESS)
-            .data(listOf<User>())
+        val getUserResponse = GetPatchPostPutUserResponse()
+            .data(User())
+            .status(GetPatchPostPutUserResponse.StatusEnum.SUCCESS)
         coEvery {
-            storageGridUsersApi.orgUsersGet(any(), any(), any(), any(), any())
-        } returns Mono.just(listUsersResponse)
+            storageGridUsersApi.orgUsersUserShortNameGet(any())
+        } returns Mono.just(getUserResponse)
 
         val userCreateResponse = GetPatchPostPutUserResponse()
             .status(GetPatchPostPutUserResponse.StatusEnum.SUCCESS)
@@ -340,17 +339,17 @@ class StorageGridServiceTest {
             storageGridApiFactory.storageGridUsersApi(any())
         } returns storageGridUsersApi
 
-        val listUsersResponse = ListUsersResponse()
-            .status(ListUsersResponse.StatusEnum.ERROR)
+        val getUserResponse = GetPatchPostPutUserResponse()
+            .status(GetPatchPostPutUserResponse.StatusEnum.ERROR)
         coEvery {
-            storageGridUsersApi.orgUsersGet(any(), any(), any(), any(), any())
-        } returns Mono.just(listUsersResponse)
+            storageGridUsersApi.orgUsersUserShortNameGet(any())
+        } returns Mono.just(getUserResponse)
 
         runBlocking {
             assertk.assertThat { storageGridService.provideUser(userName, groupId, mockToken) }
                 .isFailure()
                 .isInstanceOf(ResponseStatusException::class)
-                .messageContains("The Storagegrid users api returned an error on orgUsersGet")
+                .messageContains("The Storagegrid users api returned an error on orgUsersUserShortNameGet")
         }
     }
 
@@ -364,12 +363,12 @@ class StorageGridServiceTest {
             storageGridApiFactory.storageGridUsersApi(any())
         } returns storageGridUsersApi
 
-        val listUsersResponse = ListUsersResponse()
-            .status(ListUsersResponse.StatusEnum.SUCCESS)
-            .data(listOf<User>())
+        val getUserResponse = GetPatchPostPutUserResponse()
+            .data(User())
+            .status(GetPatchPostPutUserResponse.StatusEnum.SUCCESS)
         coEvery {
-            storageGridUsersApi.orgUsersGet(any(), any(), any(), any(), any())
-        } returns Mono.just(listUsersResponse)
+            storageGridUsersApi.orgUsersUserShortNameGet(any())
+        } returns Mono.just(getUserResponse)
 
         val userCreateResponse = GetPatchPostPutUserResponse()
             .status(GetPatchPostPutUserResponse.StatusEnum.ERROR)
