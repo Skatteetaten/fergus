@@ -29,7 +29,6 @@ import org.openapitools.client.model.ContainerListResponse
 import org.openapitools.client.model.GetPatchPostPutGroupResponse
 import org.openapitools.client.model.GetPatchPostPutUserResponse
 import org.openapitools.client.model.Group
-import org.openapitools.client.model.ListGroupsResponse
 import org.openapitools.client.model.PostAccessKeyResponse
 import org.openapitools.client.model.S3AccessKeyWithSecrets
 import org.openapitools.client.model.User
@@ -209,12 +208,12 @@ class StorageGridServiceTest {
             storageGridApiFactory.storageGridGroupsApi(any())
         } returns storageGridGroupsApi
 
-        val listGroupsResponse = ListGroupsResponse()
-            .status(ListGroupsResponse.StatusEnum.SUCCESS)
-            .data(listOf<Group>())
+        val getGroupResponse = GetPatchPostPutGroupResponse()
+            .data(Group())
+            .status(GetPatchPostPutGroupResponse.StatusEnum.SUCCESS)
         coEvery {
-            storageGridGroupsApi.orgGroupsGet(any(), any(), any(), any(), any())
-        } returns Mono.just(listGroupsResponse)
+            storageGridGroupsApi.orgGroupsGroupShortNameGet(any())
+        } returns Mono.just(getGroupResponse)
 
         val groupCreateResponse = GetPatchPostPutGroupResponse()
             .status(GetPatchPostPutGroupResponse.StatusEnum.SUCCESS)
@@ -236,7 +235,7 @@ class StorageGridServiceTest {
     }
 
     @Test
-    fun `Should throw error on provideGroup when storageGridGroupsApi_orgGroupsGet fails`() {
+    fun `Should throw error on provideGroup when storageGridGroupsApi_orgGroupsGroupShortNameGet fails`() {
         val mockToken = "testtoken"
         val bucketName = "bucket-1"
         val path = "testpath"
@@ -246,17 +245,17 @@ class StorageGridServiceTest {
             storageGridApiFactory.storageGridGroupsApi(any())
         } returns storageGridGroupsApi
 
-        val listGroupsResponse = ListGroupsResponse()
-            .status(ListGroupsResponse.StatusEnum.ERROR)
+        val getGroupResponse = GetPatchPostPutGroupResponse()
+            .status(GetPatchPostPutGroupResponse.StatusEnum.ERROR)
         coEvery {
-            storageGridGroupsApi.orgGroupsGet(any(), any(), any(), any(), any())
-        } returns Mono.just(listGroupsResponse)
+            storageGridGroupsApi.orgGroupsGroupShortNameGet(any())
+        } returns Mono.just(getGroupResponse)
 
         runBlocking {
             assertk.assertThat { storageGridService.provideGroup(bucketName, path, access, mockToken) }
                 .isFailure()
                 .isInstanceOf(ResponseStatusException::class)
-                .messageContains("The Storagegrid groups api returned an error on orgGroupsGet")
+                .messageContains("The Storagegrid groups api returned an error on orgGroupsGroupShortNameGet")
         }
     }
 
@@ -271,12 +270,12 @@ class StorageGridServiceTest {
             storageGridApiFactory.storageGridGroupsApi(any())
         } returns storageGridGroupsApi
 
-        val listGroupsResponse = ListGroupsResponse()
-            .status(ListGroupsResponse.StatusEnum.SUCCESS)
-            .data(listOf<Group>())
+        val getGroupResponse = GetPatchPostPutGroupResponse()
+            .data(Group())
+            .status(GetPatchPostPutGroupResponse.StatusEnum.SUCCESS)
         coEvery {
-            storageGridGroupsApi.orgGroupsGet(any(), any(), any(), any(), any())
-        } returns Mono.just(listGroupsResponse)
+            storageGridGroupsApi.orgGroupsGroupShortNameGet(any())
+        } returns Mono.just(getGroupResponse)
 
         val groupCreateResponse = GetPatchPostPutGroupResponse()
             .status(GetPatchPostPutGroupResponse.StatusEnum.ERROR)
@@ -330,7 +329,7 @@ class StorageGridServiceTest {
     }
 
     @Test
-    fun `Should throw error on provideUser when storageGridUsersApi_orgUsersGet fails`() {
+    fun `Should throw error on provideUser when storageGridUsersApi_orgUsersUserShortNameGet fails`() {
         val mockToken = "testtoken"
         val userName = "testUser"
         val groupId = UUID.randomUUID()

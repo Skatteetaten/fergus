@@ -16,7 +16,6 @@ import org.openapitools.client.model.Credentials
 import org.openapitools.client.model.GetPatchPostPutGroupResponse
 import org.openapitools.client.model.GetPatchPostPutUserResponse
 import org.openapitools.client.model.InlineObject1
-import org.openapitools.client.model.ListGroupsResponse
 import org.openapitools.client.model.PasswordChangeRequest
 import org.openapitools.client.model.PatchUserRequest
 import org.openapitools.client.model.Policies
@@ -89,27 +88,26 @@ class StorageGridServiceReactive(
 
     override suspend fun provideGroup(bucketName: String, path: String, access: List<Access>, token: String): UUID {
         val storageGridGroupsApi = storageGridApiFactory.storageGridGroupsApi(token)
-        val uniqueGroupName = createUniqueGroupName(bucketName, path, access)
+        val shortGroupName = createShortGroupName(bucketName, path, access)
+        val uniqueGroupName = "group/$shortGroupName"
         val displayGroupName = createDisplayGroupName(bucketName, path, access)
 
-        // Get list of buckets for tenant
-        // TODO: Replace with storageGridGroupsApi.orgGroupsGroupShortNameGet()
-        val listGroupsResponse = storageGridGroupsApi
-            .orgGroupsGet(null, 100000, null, null, null)
+        // Get group by shortname
+        val getGroupResponse = storageGridGroupsApi
+            .orgGroupsGroupShortNameGet(shortGroupName)
             .awaitSingle()
-        if (listGroupsResponse.status === ListGroupsResponse.StatusEnum.ERROR) {
+        if (getGroupResponse.status === GetPatchPostPutGroupResponse.StatusEnum.ERROR) {
             throw ResponseStatusException(
                 HttpStatus.INTERNAL_SERVER_ERROR,
-                "The Storagegrid groups api returned an error on orgGroupsGet"
+                "The Storagegrid groups api returned an error on orgGroupsGroupShortNameGet"
             )
         }
         // Check if groupName exists in listGroupsResponse, if not, create with policy
-        val groupUniqueNames: List<String> = listGroupsResponse.data.mapNotNull { it.uniqueName }
-        val groupId = if (!groupUniqueNames.contains(uniqueGroupName)) {
+        val groupId = if (!getGroupResponse.data.uniqueName.equals(uniqueGroupName)) {
             createGroupWithPolicy(displayGroupName, uniqueGroupName, bucketName, path, access, storageGridGroupsApi)
         } else {
             // Find id for matching group
-            (listGroupsResponse.data.filter { it -> it.uniqueName == uniqueGroupName }).first().id
+            getGroupResponse.data.id
         }
 
         return UUID.fromString(groupId)
@@ -154,14 +152,14 @@ class StorageGridServiceReactive(
         return groupCreateResponse.data.id
     }
 
-    private fun createUniqueGroupName(
+    private fun createShortGroupName(
         bucketName: String,
         path: String,
         access: List<Access>
     ): String {
         val groupNamePostfix = createGroupAccessPostfix(access)
 
-        return "group/$bucketName-$path-$groupNamePostfix"
+        return "$bucketName-$path-$groupNamePostfix"
     }
 
     private fun createDisplayGroupName(
@@ -225,7 +223,7 @@ class StorageGridServiceReactive(
         token: String
     ): UUID {
         val storageGridUsersApi = storageGridApiFactory.storageGridUsersApi(token)
-        // Get list of users for tenant
+        // Get user by shortname
         val getUsersResponse = storageGridUsersApi
             .orgUsersUserShortNameGet(userName)
             .awaitSingle()
