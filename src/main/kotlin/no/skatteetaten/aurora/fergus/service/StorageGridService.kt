@@ -90,7 +90,8 @@ class StorageGridServiceReactive(
 
     override suspend fun provideGroup(bucketName: String, path: String, access: List<Access>, token: String): UUID {
         val storageGridGroupsApi = storageGridApiFactory.storageGridGroupsApi(token)
-        val groupName = createGroupName(bucketName, path, access)
+        val uniqueGroupName = createUniqueGroupName(bucketName, path, access)
+        val displayGroupName = createDisplayGroupName(bucketName, path, access)
 
         // Get list of buckets for tenant
         val listGroupsResponse = storageGridGroupsApi
@@ -103,19 +104,20 @@ class StorageGridServiceReactive(
             )
         }
         // Check if groupName exists in listGroupsResponse, if not, create with policy
-        val groupDisplayNames: List<String> = listGroupsResponse.data.mapNotNull { it.displayName }
-        val groupId = if (!groupDisplayNames.contains(groupName)) {
-            createGroupWithPolicy(groupName, bucketName, path, access, storageGridGroupsApi)
+        val groupUniqueNames: List<String> = listGroupsResponse.data.mapNotNull { it.uniqueName }
+        val groupId = if (!groupUniqueNames.contains(uniqueGroupName)) {
+            createGroupWithPolicy(displayGroupName, uniqueGroupName, bucketName, path, access, storageGridGroupsApi)
         } else {
             // Find id for matching group
-            (listGroupsResponse.data.filter { it -> it.displayName == groupName }).first().id
+            (listGroupsResponse.data.filter { it -> it.uniqueName == uniqueGroupName }).first().id
         }
 
         return UUID.fromString(groupId)
     }
 
     private suspend fun createGroupWithPolicy(
-        groupName: String,
+        displayGroupName: String,
+        uniqueGroupName: String,
         bucketName: String,
         path: String,
         access: List<Access>,
@@ -129,15 +131,16 @@ class StorageGridServiceReactive(
         val objectActionStatement = createS3ObjectActionStatement(bucketName, path, access)
 
         val postGroupRequest = PostGroupRequest()
-            .displayName(groupName)
+            .displayName(displayGroupName)
             .policies(
                 Policies().s3(
                     PolicyS3()
-                        .id(groupName)
+                        .id(uniqueGroupName)
                         .addStatementItem(bucketStatement)
                         .addStatementItem(objectActionStatement)
                 )
             )
+            .uniqueName(uniqueGroupName)
         val groupCreateResponse = storageGridGroupsApi
             .orgGroupsPost(postGroupRequest)
             .awaitSingle()
@@ -151,18 +154,43 @@ class StorageGridServiceReactive(
         return groupCreateResponse.data.id
     }
 
-    private fun createGroupName(
+    private fun createUniqueGroupName(
         bucketName: String,
         path: String,
         access: List<Access>
     ): String {
+        val groupNamePostfix = createGroupAccessPostfix(access)
+
+        return "group/$bucketName-$path-$groupNamePostfix"
+    }
+
+    private fun createDisplayGroupName(
+        bucketName: String,
+        path: String,
+        access: List<Access>
+    ): String {
+        val groupNamePostfix = createGroupAccessPostfix(access)
+
+        return ensureShortDisplayGroupName(path, bucketName, groupNamePostfix)
+    }
+
+    private fun ensureShortDisplayGroupName(path: String, bucketName: String, groupNamePostfix: String): String {
+        val totalLength = "$bucketName-$path-$groupNamePostfix".length
+        return if (totalLength > StorageGridConstants.GROUP_DISPLAYNAME_MAXLENGTH) {
+            val pathPartLength = StorageGridConstants.GROUP_DISPLAYNAME_MAXLENGTH - 2 - bucketName.length - groupNamePostfix.length
+            if (pathPartLength > 0) {
+                val shortPath = path.substring(0, pathPartLength)
+                "$bucketName-$shortPath-$groupNamePostfix"
+            } else "$bucketName-$groupNamePostfix".substring(0, StorageGridConstants.GROUP_DISPLAYNAME_MAXLENGTH)
+        } else "$bucketName-$path-$groupNamePostfix"
+    }
+
+    private fun createGroupAccessPostfix(access: List<Access>): String {
         var groupNamePostfix = ""
         if (access.isNotEmpty()) {
             access.forEach { groupNamePostfix += it.name.take(1) }
         } else groupNamePostfix = "RWD"
-
-        val groupName = "$bucketName-$path-$groupNamePostfix"
-        return groupName
+        return groupNamePostfix
     }
 
     private fun createS3ObjectActionStatement(
@@ -346,3 +374,7 @@ data class S3AccessKeys(
     val s3accesskey: String,
     val s3secretaccesskey: String,
 )
+
+object StorageGridConstants {
+    const val GROUP_DISPLAYNAME_MAXLENGTH = 32
+}
