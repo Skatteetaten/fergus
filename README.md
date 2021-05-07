@@ -31,7 +31,7 @@ tasks on such a server, a running StorageGrid server is needed to use Fergus.
 
 There are some configuration needed for deploying and running Fergus
 
-### Configuration settings - NOT UPDATED ACCORDING TO ACTUAL FUNCTIONALITY
+### Configuration settings 
 
 Fergus need to be configured to connect to the S3 server. This is done by environment variables. All variables have
 defined defaults, so for very basic testing, Fergus can start without them, but only as long as the S3 server conforms
@@ -41,23 +41,13 @@ Here is a summary of the environment variables used by Fergus:
 
 | Environment variable | Default | Description |
 | ---| ---| ---|
-| FERGUS_S3_HOST | localhost | The host name of the S3 server |
-| FERGUS_S3_PORT | 9000 | The port of the S3 server |
-| FERGUS_S3_USESSL | false | Set to true if the S3 server uses SSL |
-| FERGUS_S3_REGION | us-east-1 | The region of the S3 server, also used for the bucket |
-| FERGUS_RANDOMPASS | false | Set to true if each user should get a separate password (recommended)|
+| FERGUS_MANAGEMENT_URL | - | The URL of the StorageGRID management API |
+| FERGUS_S3_URL | http://uia0ins-netapp-storagegrid01.skead.no:10880/ | The URL of the StorageGRID S3 API |
+| FERGUS_RANDOMPASS | true | Set to false if provisioned users should get a fixed password (NB: Testing only)|
 | FERGUS_DEFAULT_PASSWORD | S3userpass | The returned userpass if FERGUS_RANDOMPASS is false |
-| FERGUS_ACCESS_KEY | aurora | Access key for the S3 server admin (recommended to override) |
-| FERGUS_SECRET_KEY | fragleberget | Access secret for the S3 server admin (recommended to override) |
 | FERGUS_DEBUG | false | Set to true to enable debug logging |
-| FERGUS_AURORATOKENLOCATION | ./aurora-token | The location of a file for authentication token see [the API](./TOBEDECIDED.md) for information |
 
-### Aurora token
-
-To authenticate endpoint requests, a token is used.  This token is stored in a file as indicated by the
-FERGUS_AURORATOKENLOCATION configuration, and is mandatory for Fergus to work (an error will occur on startup if missing).
-
-## Using Fergus - API
+## Using Fergus - API - NEEDS WORK
 
 Fergus provides an http based API as a service.  [The API is described here](./TOBEDECIDED.md)
 

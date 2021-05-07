@@ -25,8 +25,8 @@ fergus:
 
 integrations:
     storagegrid:
-        url: http://storagegrid
-        s3url: ${FERGUS_S3URL:"http://uia0ins-netapp-storagegrid01.skead.no:10880/"}
+        url: ${FERGUS_MANAGEMENT_URL:http://storagegrid}
+        s3url: ${FERGUS_S3_URL:http://uia0ins-netapp-storagegrid01.skead.no:10880/}
 
 ---
 
@@ -58,6 +58,6 @@ logging:
 
 integrations:
     storagegrid:
-        url: "https://uia0ins-netapp-storagegrid01.skead.no/"
-        s3url: "http://uia0ins-netapp-storagegrid01.skead.no:10880/"
+        url: ${FERGUS_MANAGEMENT_URL:https://uia0ins-netapp-storagegrid01.skead.no/}
+        s3url: ${FERGUS_S3_URL:http://uia0ins-netapp-storagegrid01.skead.no:10880/}
 
