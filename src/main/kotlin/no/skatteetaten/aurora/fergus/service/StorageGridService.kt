@@ -103,11 +103,11 @@ class StorageGridServiceReactive(
             )
         }
         // Check if groupName exists in listGroupsResponse, if not, create with policy
-        val groupId = if (!getGroupResponse.data.uniqueName.equals(uniqueGroupName)) {
-            createGroupWithPolicy(displayGroupName, uniqueGroupName, bucketName, path, access, storageGridGroupsApi)
-        } else {
+        val groupId = if (getGroupResponse.data.uniqueName.equals(uniqueGroupName)) {
             // Find id for matching group
             getGroupResponse.data.id
+        } else {
+            createGroupWithPolicy(displayGroupName, uniqueGroupName, bucketName, path, access, storageGridGroupsApi)
         }
 
         return UUID.fromString(groupId)
@@ -235,13 +235,13 @@ class StorageGridServiceReactive(
         }
 
         // Check if userName exists in listUsersResponse, if not, create
-        val userId = if (!getUsersResponse.data.uniqueName.equals("user/$userName")) {
-            createUser(userName, groupId, storageGridUsersApi)
-        } else {
+        val userId = if (getUsersResponse.data.uniqueName.equals("user/$userName")) {
             // Update group membership for user
             val uId = getUsersResponse.data.id
             updateUserGroupMember(userName, groupId, uId, storageGridUsersApi)
             uId
+        } else {
+            createUser(userName, groupId, storageGridUsersApi)
         }
 
         if (userId == null) {
