@@ -18,6 +18,7 @@ aurora {
         useKtLint
     }
     useSpringBoot {
+        useWebFlux
         useCloudContract
     }
 
@@ -28,9 +29,9 @@ aurora {
 
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-validation")
-    implementation("org.springframework.boot:spring-boot-starter-webflux")
-    implementation("io.projectreactor.kotlin:reactor-kotlin-extensions:1.1.2")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.2")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.4.2")
+    implementation("io.projectreactor.kotlin:reactor-kotlin-extensions:1.1.2")
 
     // Swagger
     implementation("org.openapitools:jackson-databind-nullable:0.2.1")
@@ -38,7 +39,9 @@ dependencies {
     implementation("com.google.code.findbugs:jsr305:3.0.2")
 
     // MockWebServer
-    testImplementation("com.squareup.okhttp3:mockwebserver:3.14.9")
+    testImplementation("no.skatteetaten.aurora:mockmvc-extensions-kotlin:1.1.6")
+
+    testImplementation("com.ninja-squad:springmockk:2.0.1")
 }
 
 openApiGenerate {

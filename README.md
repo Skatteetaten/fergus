@@ -1,11 +1,12 @@
 # Fergus
 <img align="right" src="https://static.wikia.nocookie.net/muppet/images/5/5f/Fergus.jpg/revision/latest/scale-to-width-down/200">
 
-NB! This application is under early development.
+NB! This application is under development.
 
 ## What is it?
 
-Fergus is a http based REST service to conveniently set up buckets and users with a standard set of policies in a StorageGrid S3 solution.
+Fergus is a http based REST service to conveniently set up buckets and users with 
+a standard set of policies in a StorageGrid S3 solution.
 The main purpose is to provision separately available storage areas for specific
 users/applications to make simple object storage available for clients.
 
@@ -30,7 +31,7 @@ tasks on such a server, a running StorageGrid server is needed to use Fergus.
 
 There are some configuration needed for deploying and running Fergus
 
-### Configuration settings
+### Configuration settings 
 
 Fergus need to be configured to connect to the S3 server. This is done by environment variables. All variables have
 defined defaults, so for very basic testing, Fergus can start without them, but only as long as the S3 server conforms
@@ -40,23 +41,13 @@ Here is a summary of the environment variables used by Fergus:
 
 | Environment variable | Default | Description |
 | ---| ---| ---|
-| FERGUS_S3_HOST | localhost | The host name of the S3 server |
-| FERGUS_S3_PORT | 9000 | The port of the S3 server |
-| FERGUS_S3_USESSL | false | Set to true if the S3 server uses SSL |
-| FERGUS_S3_REGION | us-east-1 | The region of the S3 server, also used for the bucket |
-| FERGUS_RANDOMPASS | false | Set to true if each user should get a separate password (recommended)|
+| FERGUS_MANAGEMENT_URL | - | The URL of the StorageGRID management API |
+| FERGUS_S3_URL | http://uia0ins-netapp-storagegrid01.skead.no:10880/ | The URL of the StorageGRID S3 API |
+| FERGUS_RANDOMPASS | true | Set to false if provisioned users should get a fixed password (NB: Testing only)|
 | FERGUS_DEFAULT_PASSWORD | S3userpass | The returned userpass if FERGUS_RANDOMPASS is false |
-| FERGUS_ACCESS_KEY | aurora | Access key for the S3 server admin (recommended to override) |
-| FERGUS_SECRET_KEY | fragleberget | Access secret for the S3 server admin (recommended to override) |
 | FERGUS_DEBUG | false | Set to true to enable debug logging |
-| FERGUS_AURORATOKENLOCATION | ./aurora-token | The location of a file for authentication token see [the API](./API.md) for information |
 
-### Aurora token
-
-To authenticate endpoint requests, a token is used.  This token is stored in a file as indicated by the
-FERGUS_AURORATOKENLOCATION configuration, and is mandatory for Fergus to work (an error will occur on startup if missing).
-
-## Using Fergus - API
+## Using Fergus - API - NEEDS WORK
 
 Fergus provides an http based API as a service.  [The API is described here](./TOBEDECIDED.md)
 
@@ -72,59 +63,6 @@ We use [Semantic versioning](http://semver.org/) for our release versions.
 
 This project is licensed under the Apache 2.0 License - see the [LICENSE](./LICENSE) file for details
 
-
-
-# Spring Boot Reference Application Kotliin
-
-The intention of the Reference Application is to serve as a guide when developing Business Applications
-(Fagapplikasjoner) within The Norwegian Tax Administration (Skatteetaten); applications implementing the core business 
-rules in the tax domain for which Skatteetaten is responsible.
-
-In this repository your will find examples on how to solve common technical issues and implement requirements for 
-applications running within the networks of Skatteetaten and especially on the  Aurora OpenShift platform. This includes logging, handling database 
-migrations, testing, security, application versioning, build pipeline, to name a few.
-
-The Reference Application is implemented in [Spring Boot](https://spring.io/projects/spring-boot).
-
-
-# About the Core Technologies
-
-The recommended technology for all new business applications created within Skatteetaten is Spring Boot. There are
-two main versions of the reference application. This version is implemented using Kotlin as the programming language
-instead of Java. For the Java version, see https://github.com/Skatteetaten/openshift-reference-springboot-server .
-
-
-# How to Use the Application
-
-As the intention of the Reference Application is to serve as a guide to how to set up your own application, it is not 
-intended to be used directly as a starting point for new applications without any modifications.
-
-You may fork the repository of the application to be able to apply new commits onto your own modified application, or
-your may export the code into your own fresh repository and manually keep up to date with changes to the central
-repository by inspecting the change logs. Which approach is best will depend on the amount of changes you make to 
-central files, like the ```pom.xml``` and ```application.yml```.
-
-Regardless of the approach you use to keep up with changes, you will have to make the following changes to the
-fork/export:
-
- * change the ```iqOrganizationName``` in the `Jenkinsfile` to match your organization
- * change the ```groupId```, ```artifactId```, ```name``` and ```description``` in the ```pom.xml``` to match that of your application
- * rename the main package in ```src/main``` to match that of your application
- * change the ```info.links``` in ```application.yml``` to match that of your application
- * remove the example database code (migrations under ```src/main/resource/db/migrations```), the Counter-classes in the controllers, health and service packages and the database config in ```application.yml```
-
-
-# What is Covered in the Application?
-
-## Starters
-
-The application has one starter  [aurora-springboot2-starter](https://github.com/Skatteetaten/aurora-springboot2-starter/tree/master) in order to set up normal aurora requirements such as
- - grouping properties into their own property sources
- - setting default properties for actuator
- - instrumenting RestTemplates with metrics
- - instrument ServerFilter with metrics
- - instrument logback with metrics
- 
 
 ## Log Configuration
 

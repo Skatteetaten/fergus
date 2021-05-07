@@ -8,11 +8,13 @@ import org.springframework.web.bind.annotation.RestController
 import no.skatteetaten.aurora.fergus.service.StorageGridService
 
 /*
- * A REST controller defining endpoints for buckets
+ * A REST controller defining endpoints for authorization
  */
 @RestController
 @RequestMapping("/v1")
-class AuthorizationController(private val storageGridService: StorageGridService) {
+class AuthorizationController(
+    private val storageGridService: StorageGridService,
+) {
 
     @PostMapping("/authorize")
     suspend fun authorize(@RequestBody @Valid authorizationPayload: AuthorizationPayload): String =

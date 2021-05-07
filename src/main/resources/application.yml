@@ -1,6 +1,4 @@
 info:
-    serviceLinks:
-        api-doc: "${route.name}/docs/index.html"
     dependencies:
         skatteetaten: "skatteetaten"
 
@@ -19,9 +17,16 @@ logging:
             apache.catalina: WARN
             hibernate: WARN
 
+fergus:
+    provision:
+        user:
+            randompass: ${FERGUS_RANDOMPASS:true}
+            defaultpass: ${FERGUS_DEFAULT_PASSWORD:S3userpass}
+
 integrations:
     storagegrid:
-        url: http://storagegrid
+        url: ${FERGUS_MANAGEMENT_URL:http://storagegrid}
+        s3url: ${FERGUS_S3_URL:http://uia0ins-netapp-storagegrid01.skead.no:10880/}
 
 ---
 
@@ -41,11 +46,6 @@ spring:
         activate:
             on-profile: local
 
-#    datasource:
-#        url: ${refapp.datasource.url:jdbc:oracle:thin:@host:port/path}
-#        username: ${refapp.datasource.username:username}
-#        password: ${refapp.datasource.password:password}
-
 aurora.token.value: token
 
 management:
@@ -58,5 +58,6 @@ logging:
 
 integrations:
     storagegrid:
-        url: "https://uia0ins-netapp-storagegrid01.skead.no/"
+        url: ${FERGUS_MANAGEMENT_URL:https://uia0ins-netapp-storagegrid01.skead.no/}
+        s3url: ${FERGUS_S3_URL:http://uia0ins-netapp-storagegrid01.skead.no:10880/}
 
