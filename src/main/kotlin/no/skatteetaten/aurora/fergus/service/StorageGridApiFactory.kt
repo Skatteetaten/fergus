@@ -27,7 +27,6 @@ import java.security.KeyStore
 import java.text.DateFormat
 import java.util.concurrent.TimeUnit
 import javax.net.ssl.TrustManagerFactory
-import kotlin.math.min
 
 private val logger = KotlinLogging.logger {}
 
@@ -71,11 +70,7 @@ class StorageGridApiFactory(
             .filter(
                 ExchangeFilterFunction.ofRequestProcessor {
                     logger.debug {
-                        val bearer = it.headers()[HttpHeaders.AUTHORIZATION]?.firstOrNull()?.let { token ->
-                            val t = token.substring(0, min(token.length, 11)).replace("Bearer", "")
-                            "bearer=$t"
-                        } ?: ""
-                        "HttpRequest method=${it.method()} url=${it.url()} $bearer"
+                        "HttpRequest method=${it.method()} url=${it.url()}"
                     }
                     it.toMono()
                 }
