@@ -27,6 +27,7 @@ import java.security.KeyStore
 import java.text.DateFormat
 import java.util.concurrent.TimeUnit
 import javax.net.ssl.TrustManagerFactory
+import io.netty.handler.ssl.util.InsecureTrustManagerFactory
 
 private val logger = KotlinLogging.logger {}
 
@@ -61,6 +62,7 @@ class StorageGridApiFactory(
     private fun createStorageGridApiClient(): ApiClient {
         val client = ApiClient(builder.init().build(), objectMapper, dateFormat)
         client.basePath = "$storageGridUrl${client.basePath.substringAfter("localhost")}"
+        client.authentications
 
         return client
     }
@@ -93,7 +95,7 @@ class StorageGridApiFactory(
             trustFactory.init(trustStore)
             val sslContext: SslContext = SslContextBuilder
                 .forClient()
-                .trustManager(trustFactory)
+                .trustManager(InsecureTrustManagerFactory.INSTANCE)
                 .build()
 
             return ReactorClientHttpConnector(httpClient.secure { it.sslContext(sslContext) })
