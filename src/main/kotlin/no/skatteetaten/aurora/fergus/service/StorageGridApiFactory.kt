@@ -62,7 +62,6 @@ class StorageGridApiFactory(
     private fun createStorageGridApiClient(): ApiClient {
         val client = ApiClient(builder.init().build(), objectMapper, dateFormat)
         client.basePath = "$storageGridUrl${client.basePath.substringAfter("localhost")}"
-        client.authentications
 
         return client
     }
