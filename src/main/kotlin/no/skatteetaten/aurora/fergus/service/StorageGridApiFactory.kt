@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import io.netty.channel.ChannelOption
 import io.netty.handler.ssl.SslContext
 import io.netty.handler.ssl.SslContextBuilder
+import io.netty.handler.ssl.util.InsecureTrustManagerFactory
 import io.netty.handler.timeout.ReadTimeoutHandler
 import io.netty.handler.timeout.WriteTimeoutHandler
 import mu.KotlinLogging
@@ -39,6 +40,7 @@ class StorageGridApiFactory(
     private val builder: WebClient.Builder,
     private val dateFormat: DateFormat,
     @Value("\${integrations.storagegrid.url}") val storageGridUrl: String,
+    @Value("\${fergus.ssl.trustmanagerinsecure}") val useInsecureTrustManager: Boolean,
     @Autowired private val trustStore: KeyStore?
 ) {
 
@@ -54,12 +56,13 @@ class StorageGridApiFactory(
 
     private fun apiClientForToken(token: String): ApiClient {
         val apiClient = createStorageGridApiClient()
-        apiClient.setBearerToken(token)
+        apiClient.setApiKey(token)
         return apiClient
     }
 
     private fun createStorageGridApiClient(): ApiClient {
         val client = ApiClient(builder.init().build(), objectMapper, dateFormat)
+
         client.basePath = "$storageGridUrl${client.basePath.substringAfter("localhost")}"
 
         return client
@@ -93,7 +96,7 @@ class StorageGridApiFactory(
             trustFactory.init(trustStore)
             val sslContext: SslContext = SslContextBuilder
                 .forClient()
-                .trustManager(trustFactory)
+                .trustManager(if (useInsecureTrustManager) InsecureTrustManagerFactory.INSTANCE else trustFactory)
                 .build()
 
             return ReactorClientHttpConnector(httpClient.secure { it.sslContext(sslContext) })

@@ -18,6 +18,8 @@ logging:
             hibernate: WARN
 
 fergus:
+    ssl:
+        trustmanagerinsecure: ${FERGUS_TRUSTMANAGERINSECURE:false}
     provision:
         user:
             randompass: ${FERGUS_RANDOMPASS:true}
