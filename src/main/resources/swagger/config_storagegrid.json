@@ -1,5 +1,6 @@
 {
   "dateLibrary": "java8",
+  "library": "native",
   "reactive": true,
   "swaggerAnnotations": false,
   "enumPropertyNaming": "UPPERCASE",

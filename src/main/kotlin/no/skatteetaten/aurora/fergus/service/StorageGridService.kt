@@ -97,7 +97,7 @@ class StorageGridServiceReactive(
         val displayGroupName = createDisplayGroupName(bucketName, path, access)
 
         // Get group by shortname
-        var getGroupResponse: GetPatchPostPutGroupResponse? = null
+        var getGroupResponse: GetPatchPostPutGroupResponse?
         try {
             getGroupResponse = storageGridGroupsApi
                 .orgGroupsGroupShortNameGet(shortGroupName)
@@ -110,12 +110,11 @@ class StorageGridServiceReactive(
             }
         } catch (wcre: WebClientResponseException) {
             if (wcre.statusCode.equals(HttpStatus.NOT_FOUND)) {
-                logger.warn("Error trying to get existing group (404, normal if it is not created)")
+                logger.info("Got NOT_FOUND when trying to get named group, which is normal")
             } else {
                 logger.error("Error trying to get existing group", wcre)
                 throw wcre
             }
-
             getGroupResponse = null
         }
 
@@ -167,7 +166,7 @@ class StorageGridServiceReactive(
             }
             return groupCreateResponse.data.id
         } catch (wcre: WebClientResponseException) {
-            logger.error("Error trying to get create group", wcre)
+            logger.error("Error trying to get create group. Details: ${wcre.responseBodyAsString}", wcre)
             throw wcre
         }
     }
@@ -244,20 +243,31 @@ class StorageGridServiceReactive(
     ): UUID {
         val storageGridUsersApi = storageGridApiFactory.storageGridUsersApi(token)
         // Get user by shortname
-        val getUsersResponse = storageGridUsersApi
-            .orgUsersUserShortNameGet(userName)
-            .awaitSingle()
-        if (getUsersResponse.status === GetPatchPostPutUserResponse.StatusEnum.ERROR) {
-            throw ResponseStatusException(
-                HttpStatus.INTERNAL_SERVER_ERROR,
-                "The Storagegrid users api returned an error on orgUsersUserShortNameGet"
-            )
+        var getUserResponse: GetPatchPostPutUserResponse?
+        try {
+            getUserResponse = storageGridUsersApi
+                .orgUsersUserShortNameGet(userName)
+                .awaitSingle()
+            if (getUserResponse != null && getUserResponse.status === GetPatchPostPutUserResponse.StatusEnum.ERROR) {
+                throw ResponseStatusException(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    "The Storagegrid users api returned an error on orgUsersUserShortNameGet"
+                )
+            }
+        } catch (wcre: WebClientResponseException) {
+            if (wcre.statusCode.equals(HttpStatus.NOT_FOUND)) {
+                logger.info("Got NOT_FOUND when trying to get named user, which is normal")
+            } else {
+                logger.error("Error trying to get existing user", wcre)
+                throw wcre
+            }
+            getUserResponse = null
         }
 
         // Check if userName already exists, if not, create
-        val userId = if (getUsersResponse.data.uniqueName.equals("user/$userName")) {
+        val userId = if (getUserResponse != null && getUserResponse.data.uniqueName.equals("user/$userName")) {
             // Update group membership for user
-            val uId = getUsersResponse.data.id
+            val uId = getUserResponse.data.id
             updateUserGroupMember(userName, groupId, uId, storageGridUsersApi)
             uId
         } else {
