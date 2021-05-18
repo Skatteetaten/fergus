@@ -8,6 +8,7 @@ spring:
     profiles:
         active: local
     jackson:
+        # Necessary to avoid inclusion of entries with null or empty listvalues in S3 policies, which will violate rules in StorageGRID
         default-property-inclusion: non_empty
 
 logging:
