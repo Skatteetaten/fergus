@@ -1,4 +1,4 @@
-package no.skatteetaten.aurora.fergus
+package no.skatteetaten.aurora.fergus.error
 
 open class FergusException(
     message: String,

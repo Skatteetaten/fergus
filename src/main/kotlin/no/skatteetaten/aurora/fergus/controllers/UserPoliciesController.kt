@@ -55,8 +55,8 @@ class UserPoliciesController(
 data class ProvisionUserPoliciesPayload(
     val tenantAccount: TenantAccountInput,
     val username: String,
-    val password: String?,
-    val access: List<Access>,
+    val password: String? = null,
+    val access: List<Access> = emptyList(),
 )
 
 data class TenantAccountInput(

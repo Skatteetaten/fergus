@@ -3,7 +3,8 @@ package no.skatteetaten.aurora.fergus.service
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
-import no.skatteetaten.aurora.fergus.FergusException
+import mu.KotlinLogging
+import no.skatteetaten.aurora.fergus.error.FergusException
 import no.skatteetaten.aurora.fergus.controllers.Access
 import no.skatteetaten.aurora.fergus.controllers.AuthorizationPayload
 import org.openapitools.client.api.GroupsApi
@@ -28,8 +29,11 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
+import org.springframework.web.reactive.function.client.WebClientResponseException
 import org.springframework.web.server.ResponseStatusException
 import java.util.UUID
+
+private val logger = KotlinLogging.logger {}
 
 @Service
 class StorageGridServiceReactive(
@@ -93,17 +97,26 @@ class StorageGridServiceReactive(
         val displayGroupName = createDisplayGroupName(bucketName, path, access)
 
         // Get group by shortname
-        val getGroupResponse = storageGridGroupsApi
-            .orgGroupsGroupShortNameGet(shortGroupName)
-            .awaitSingle()
-        if (getGroupResponse.status === GetPatchPostPutGroupResponse.StatusEnum.ERROR) {
+        val getGroupResponse = try {
+            storageGridGroupsApi
+                .orgGroupsGroupShortNameGet(shortGroupName)
+                .awaitSingle()
+        } catch (wcre: WebClientResponseException) {
+            if (wcre.statusCode == HttpStatus.NOT_FOUND) {
+                null
+            } else {
+                throw FergusException("Error trying to get existing group", wcre)
+            }
+        }
+        if (getGroupResponse != null && getGroupResponse.status == GetPatchPostPutGroupResponse.StatusEnum.ERROR) {
             throw ResponseStatusException(
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 "The Storagegrid groups api returned an error on orgGroupsGroupShortNameGet"
             )
         }
-        // Check if groupName exists in listGroupsResponse, if not, create with policy
-        val groupId = if (getGroupResponse.data.uniqueName.equals(uniqueGroupName)) {
+
+        // Check if uniqueGroupName already exists, if not, create with policy
+        val groupId = if (getGroupResponse != null && getGroupResponse.data.uniqueName.equals(uniqueGroupName)) {
             // Find id for matching group
             getGroupResponse.data.id
         } else {
@@ -125,7 +138,7 @@ class StorageGridServiceReactive(
             .effect(PolicyS3Statement.EffectEnum.ALLOW)
             .addActionItem("s3:ListBucket")
             .addActionItem("s3:GetBucketLocation")
-            .addResourceItem("arn:aws:s3:::$bucketName/*")
+            .addResourceItem("arn:aws:s3:::$bucketName")
         val objectActionStatement = createS3ObjectActionStatement(bucketName, path, access)
 
         val postGroupRequest = PostGroupRequest()
@@ -133,23 +146,25 @@ class StorageGridServiceReactive(
             .policies(
                 Policies().s3(
                     PolicyS3()
-                        .id(uniqueGroupName)
                         .addStatementItem(bucketStatement)
                         .addStatementItem(objectActionStatement)
                 )
             )
             .uniqueName(uniqueGroupName)
-        val groupCreateResponse = storageGridGroupsApi
-            .orgGroupsPost(postGroupRequest)
-            .awaitSingle()
-        if (groupCreateResponse.status === GetPatchPostPutGroupResponse.StatusEnum.ERROR) {
-            throw ResponseStatusException(
-                HttpStatus.INTERNAL_SERVER_ERROR,
-                "The Storagegrid groups api returned an error on orgGroupsPost"
-            )
+        try {
+            val groupCreateResponse = storageGridGroupsApi
+                .orgGroupsPost(postGroupRequest)
+                .awaitSingle()
+            if (groupCreateResponse.status == GetPatchPostPutGroupResponse.StatusEnum.ERROR) {
+                throw ResponseStatusException(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    "The Storagegrid groups api returned an error on orgGroupsPost"
+                )
+            }
+            return groupCreateResponse.data.id
+        } catch (wcre: WebClientResponseException) {
+            throw FergusException("Error trying to get create group. Details: ${wcre.responseBodyAsString}", wcre)
         }
-
-        return groupCreateResponse.data.id
     }
 
     private fun createShortGroupName(
@@ -224,20 +239,28 @@ class StorageGridServiceReactive(
     ): UUID {
         val storageGridUsersApi = storageGridApiFactory.storageGridUsersApi(token)
         // Get user by shortname
-        val getUsersResponse = storageGridUsersApi
-            .orgUsersUserShortNameGet(userName)
-            .awaitSingle()
-        if (getUsersResponse.status === GetPatchPostPutUserResponse.StatusEnum.ERROR) {
+        val getUserResponse = try {
+            storageGridUsersApi
+                .orgUsersUserShortNameGet(userName)
+                .awaitSingle()
+        } catch (wcre: WebClientResponseException) {
+            if (wcre.statusCode == HttpStatus.NOT_FOUND) {
+                null
+            } else {
+                throw FergusException("Error trying to get existing user", wcre)
+            }
+        }
+        if (getUserResponse != null && getUserResponse.status == GetPatchPostPutUserResponse.StatusEnum.ERROR) {
             throw ResponseStatusException(
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 "The Storagegrid users api returned an error on orgUsersUserShortNameGet"
             )
         }
 
-        // Check if userName exists in listUsersResponse, if not, create
-        val userId = if (getUsersResponse.data.uniqueName.equals("user/$userName")) {
+        // Check if userName already exists, if not, create
+        val userId = if (getUserResponse != null && getUserResponse.data.uniqueName == "user/$userName") {
             // Update group membership for user
-            val uId = getUsersResponse.data.id
+            val uId = getUserResponse.data.id
             updateUserGroupMember(userName, groupId, uId, storageGridUsersApi)
             uId
         } else {
