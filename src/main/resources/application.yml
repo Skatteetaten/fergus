@@ -33,12 +33,6 @@ integrations:
         url: ${FERGUS_MANAGEMENT_URL:http://storagegrid}
         s3url: ${FERGUS_S3_URL:http://uia0ins-netapp-storagegrid01.skead.no:10880/}
 
-management:
-    endpoints:
-        web:
-            exposure:
-                include: info,health,prometheus,env,loggers
-
 ---
 
 spring:
