@@ -31,6 +31,7 @@ class ErrorHandler(private val objectMapper: ObjectMapper) : WebExceptionHandler
         is ResponseStatusException -> handleResponseException(ex, exchange)
         is IllegalArgumentException -> handleException(ex, exchange, status = BAD_REQUEST)
         is AccessDeniedException -> handleException(ex, exchange, status = UNAUTHORIZED)
+        is FergusException -> handleException(ex, exchange, status = INTERNAL_SERVER_ERROR)
         else -> handleException(ex, exchange)
     }
 

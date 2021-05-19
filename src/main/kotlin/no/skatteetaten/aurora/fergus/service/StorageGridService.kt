@@ -4,7 +4,7 @@ import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
 import mu.KotlinLogging
-import no.skatteetaten.aurora.fergus.FergusException
+import no.skatteetaten.aurora.fergus.error.FergusException
 import no.skatteetaten.aurora.fergus.controllers.Access
 import no.skatteetaten.aurora.fergus.controllers.AuthorizationPayload
 import org.openapitools.client.api.GroupsApi
@@ -103,11 +103,9 @@ class StorageGridServiceReactive(
                 .awaitSingle()
         } catch (wcre: WebClientResponseException) {
             if (wcre.statusCode == HttpStatus.NOT_FOUND) {
-                logger.info("Got NOT_FOUND when trying to get named group, which is normal")
                 null
             } else {
-                logger.error("Error trying to get existing group", wcre)
-                throw wcre
+                throw FergusException("Error trying to get existing group", wcre)
             }
         }
         if (getGroupResponse != null && getGroupResponse.status == GetPatchPostPutGroupResponse.StatusEnum.ERROR) {
@@ -165,8 +163,7 @@ class StorageGridServiceReactive(
             }
             return groupCreateResponse.data.id
         } catch (wcre: WebClientResponseException) {
-            logger.error("Error trying to get create group. Details: ${wcre.responseBodyAsString}", wcre)
-            throw wcre
+            throw FergusException("Error trying to get create group. Details: ${wcre.responseBodyAsString}", wcre)
         }
     }
 
@@ -248,11 +245,9 @@ class StorageGridServiceReactive(
                 .awaitSingle()
         } catch (wcre: WebClientResponseException) {
             if (wcre.statusCode == HttpStatus.NOT_FOUND) {
-                logger.info("Got NOT_FOUND when trying to get named user, which is normal")
                 null
             } else {
-                logger.error("Error trying to get existing user", wcre)
-                throw wcre
+                throw FergusException("Error trying to get existing user", wcre)
             }
         }
         if (getUserResponse != null && getUserResponse.status == GetPatchPostPutUserResponse.StatusEnum.ERROR) {
