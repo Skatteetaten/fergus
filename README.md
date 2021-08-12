@@ -19,7 +19,7 @@ Fergus is a Spring Boot application written i Kotlin, using Gradle build automat
 ```
 git clone https://github.com/Skatteetaten/fergus.git
 cd fergus
-./gradlew
+./gradlew build
 ```
 
 ## S3 server - a prerequisite for testing and deployment

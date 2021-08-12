@@ -3,7 +3,7 @@ plugins {
     id("java")
     id("org.openapi.generator") version "5.1.0"
     id("org.springframework.boot") version "2.2.6.RELEASE"
-    id("no.skatteetaten.gradle.aurora") version("4.2.2")
+    id("no.skatteetaten.gradle.aurora") version("4.3.12")
     id("net.linguica.maven-settings") version "0.5"
 }
 
