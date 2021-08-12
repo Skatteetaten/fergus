@@ -45,18 +45,15 @@ class StorageGridServiceReactive(
     override suspend fun authorize(
         authorizationPayload: AuthorizationPayload
     ): String {
-        logger.info { "test" }
         val response: AuthorizeResponse = storageGridApiFactory.storageGridAuthApi()
             .authorizePost(authorizationPayload.toAuthorizeInput())
             .awaitSingle()
-        logger.info { "test2" }
         if (response.status === AuthorizeResponse.StatusEnum.ERROR) {
             throw ResponseStatusException(
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 "The Storagegrid auth api returned an error on authorizePost"
             )
         }
-        logger.info { "test3" }
         return response.data // Returns authorization token
     }
 
