@@ -261,7 +261,8 @@ class StorageGridServiceReactive(
         val userId = if (getUserResponse != null && getUserResponse.data.uniqueName == "user/$userName") {
             // Update group membership for user
             val uId = getUserResponse.data.id
-            updateUserGroupMember(userName, groupId, uId, storageGridUsersApi)
+            val existingGroupIds = getUserResponse.data.memberOf
+            updateUserGroupMember(userName, groupId, uId, existingGroupIds, storageGridUsersApi)
             uId
         } else {
             createUser(userName, groupId, storageGridUsersApi)
@@ -294,8 +295,20 @@ class StorageGridServiceReactive(
         return userCreateResponse.data.id
     }
 
-    private suspend fun updateUserGroupMember(userName: String, groupId: UUID, userId: UUID?, storageGridUsersApi: UsersApi) {
-        val patchUserRequest = PatchUserRequest().fullName(userName).addMemberOfItem(groupId)
+    private suspend fun updateUserGroupMember(
+        userName: String,
+        groupId: UUID,
+        userId: UUID?,
+        existingGroupIds: List<UUID>?,
+        storageGridUsersApi: UsersApi
+    ) {
+        val patchUserRequest = PatchUserRequest().fullName(userName)
+        if (existingGroupIds != null) {
+            for (gId in existingGroupIds) {
+                patchUserRequest.addMemberOfItem(groupId)
+            }
+        }
+        patchUserRequest.addMemberOfItem(groupId)
         val patchUserResponse = storageGridUsersApi
             .orgUsersIdPatch(userId.toString(), patchUserRequest)
             .awaitSingle()
