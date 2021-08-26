@@ -303,12 +303,7 @@ class StorageGridServiceReactive(
         storageGridUsersApi: UsersApi
     ) {
         val patchUserRequest = PatchUserRequest().fullName(userName)
-        if (existingGroupIds != null) {
-            for (gId in existingGroupIds) {
-                patchUserRequest.addMemberOfItem(groupId)
-            }
-        }
-        patchUserRequest.addMemberOfItem(groupId)
+        aggregateGroupIdsIntoRequest(existingGroupIds, groupId, patchUserRequest)
         val patchUserResponse = storageGridUsersApi
             .orgUsersIdPatch(userId.toString(), patchUserRequest)
             .awaitSingle()
@@ -317,6 +312,14 @@ class StorageGridServiceReactive(
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 "The Storagegrid users api returned an error on orgUsersIdPatch"
             )
+        }
+    }
+
+    private fun aggregateGroupIdsIntoRequest(existingGroupIds: List<UUID>?, groupId: UUID, patchUserRequest: PatchUserRequest) {
+        val groupIdSet: MutableSet<UUID> = existingGroupIds?.toMutableSet() ?: mutableSetOf<UUID>()
+        groupIdSet.add(groupId)
+        for (gId in groupIdSet) {
+            patchUserRequest.addMemberOfItem(gId)
         }
     }
 
