@@ -8,6 +8,7 @@ import io.mockk.clearAllMocks
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.slot
 import kotlinx.coroutines.runBlocking
 import no.skatteetaten.aurora.fergus.controllers.Access
 import no.skatteetaten.aurora.fergus.controllers.AuthorizationPayload
@@ -21,6 +22,9 @@ import org.openapitools.client.api.ContainersApi
 import org.openapitools.client.api.GroupsApi
 import org.openapitools.client.api.S3Api
 import org.openapitools.client.api.UsersApi
+import org.springframework.web.server.ResponseStatusException
+import reactor.core.publisher.Mono
+import java.util.UUID
 import org.openapitools.client.model.AuthorizeResponse
 import org.openapitools.client.model.Container
 import org.openapitools.client.model.ContainerCreate
@@ -29,12 +33,10 @@ import org.openapitools.client.model.ContainerListResponse
 import org.openapitools.client.model.GetPatchPostPutGroupResponse
 import org.openapitools.client.model.GetPatchPostPutUserResponse
 import org.openapitools.client.model.Group
+import org.openapitools.client.model.PatchUserRequest
 import org.openapitools.client.model.PostAccessKeyResponse
 import org.openapitools.client.model.S3AccessKeyWithSecrets
 import org.openapitools.client.model.User
-import org.springframework.web.server.ResponseStatusException
-import reactor.core.publisher.Mono
-import java.util.UUID
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class StorageGridServiceTest {
@@ -325,6 +327,104 @@ class StorageGridServiceTest {
             val userIdResponse = storageGridService.provideUser(userName, groupId, mockToken)
 
             assertThat(userIdResponse).isEqualTo(userId)
+        }
+    }
+
+    @Test
+    fun `Should add group membership on provideUser when user already exists`() {
+        val mockToken = "testtoken"
+        val userName = "testUser"
+        val existingGroupId = UUID.randomUUID()
+        val newGroupId = UUID.randomUUID()
+        val userId = UUID.randomUUID()
+
+        every {
+            storageGridApiFactory.storageGridUsersApi(any())
+        } returns storageGridUsersApi
+
+        val getUserResponse = GetPatchPostPutUserResponse()
+            .status(GetPatchPostPutUserResponse.StatusEnum.SUCCESS)
+            .data(
+                User()
+                    .fullName(userName)
+                    .uniqueName("user/$userName")
+                    .id(userId)
+                    .addMemberOfItem(existingGroupId)
+            )
+        coEvery {
+            storageGridUsersApi.orgUsersUserShortNameGet(any())
+        } returns Mono.just(getUserResponse)
+        val orgUsersIdPatch = GetPatchPostPutUserResponse()
+            .status(GetPatchPostPutUserResponse.StatusEnum.SUCCESS)
+            .data(
+                User()
+                    .fullName(userName)
+                    .uniqueName("user/$userName")
+                    .id(userId)
+            )
+        val capturePatchRequest = slot<PatchUserRequest>()
+        coEvery {
+            storageGridUsersApi.orgUsersIdPatch(userId.toString(), capture(capturePatchRequest))
+        } returns Mono.just(orgUsersIdPatch)
+
+        runBlocking {
+            val userIdResponse = storageGridService.provideUser(userName, newGroupId, mockToken)
+
+            assertThat(userIdResponse).isEqualTo(userId)
+            assertThat(capturePatchRequest.isCaptured)
+            assertThat(capturePatchRequest.captured.memberOf?.size == 2)
+        }
+    }
+
+    @Test
+    fun `Should handle group membership on provideUser when user already exists with incoming groupId`() {
+        val mockToken = "testtoken"
+        val userName = "testUser"
+        val existingGroupId1 = UUID.randomUUID()
+        val existingGroupId2 = UUID.randomUUID()
+        val newGroupId = UUID.randomUUID()
+        val userId = UUID.randomUUID()
+
+        every {
+            storageGridApiFactory.storageGridUsersApi(any())
+        } returns storageGridUsersApi
+
+        val getUserResponse = GetPatchPostPutUserResponse()
+            .status(GetPatchPostPutUserResponse.StatusEnum.SUCCESS)
+            .data(
+                User()
+                    .fullName(userName)
+                    .uniqueName("user/$userName")
+                    .id(userId)
+                    .addMemberOfItem(existingGroupId1)
+                    .addMemberOfItem(existingGroupId2)
+                    .addMemberOfItem(newGroupId)
+            )
+        coEvery {
+            storageGridUsersApi.orgUsersUserShortNameGet(any())
+        } returns Mono.just(getUserResponse)
+        val orgUsersIdPatch = GetPatchPostPutUserResponse()
+            .status(GetPatchPostPutUserResponse.StatusEnum.SUCCESS)
+            .data(
+                User()
+                    .fullName(userName)
+                    .uniqueName("user/$userName")
+                    .id(userId)
+            )
+        val capturePatchRequest = slot<PatchUserRequest>()
+        coEvery {
+            storageGridUsersApi.orgUsersIdPatch(userId.toString(), capture(capturePatchRequest))
+        } returns Mono.just(orgUsersIdPatch)
+
+        runBlocking {
+            val userIdResponse = storageGridService.provideUser(userName, newGroupId, mockToken)
+
+            assertThat(userIdResponse).isEqualTo(userId)
+            assertThat(capturePatchRequest.isCaptured)
+            assertThat(capturePatchRequest.captured.memberOf?.size == 3)
+            assertThat(capturePatchRequest.captured.memberOf?.contains(existingGroupId1))
+            assertThat(capturePatchRequest.captured.memberOf?.contains(existingGroupId2))
+            assertThat(capturePatchRequest.captured.memberOf?.contains(newGroupId))
         }
     }
 
