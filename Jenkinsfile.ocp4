@@ -1,0 +1,21 @@
+#!/usr/bin/env groovy
+def jenkinsfile
+
+def config = [
+    scriptVersion              : 'v7',
+    iqOrganizationName         : 'Team AOS',
+    compilePropertiesIq        : "-x test",
+    pipelineScript             : 'https://git.aurora.skead.no/scm/ao/aurora-pipeline-scripts.git',
+    javaVersion                : 11,
+    jiraFiksetIKomponentversjon: true,
+    chatRoom                   : "#aos-notifications",
+    versionStrategy            : [
+        [branch: 'master', versionHint: '0']
+    ],
+    openshiftUrl               : 'https://api.utv04.paas.skead.no:6443',
+    auroraApiConfigFlags       : '--beta-multiple-cluster-types'
+]
+fileLoader.withGit(config.pipelineScript, config.scriptVersion) {
+  jenkinsfile = fileLoader.load('templates/leveransepakke')
+}
+jenkinsfile.gradle(config.scriptVersion, config)
