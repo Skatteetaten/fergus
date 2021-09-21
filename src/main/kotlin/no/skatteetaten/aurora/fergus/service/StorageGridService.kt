@@ -32,7 +32,7 @@ import mu.KotlinLogging
 import no.skatteetaten.aurora.fergus.controllers.Access
 import no.skatteetaten.aurora.fergus.controllers.AuthorizationPayload
 import no.skatteetaten.aurora.fergus.error.FergusException
-import no.skatteetaten.aurora.fergus.service.StorageGridConstants.GROUP_DISPLAYNAME_MAXLENGTH
+import no.skatteetaten.aurora.fergus.utils.StorageGridGroupUtils
 
 private val logger = KotlinLogging.logger {}
 
@@ -185,26 +185,7 @@ class StorageGridServiceReactive(
     ): String {
         val groupNamePostfix = createGroupAccessPostfix(access)
 
-        return ensureShortDisplayGroupName(path, bucketName, groupNamePostfix)
-    }
-
-    private fun ensureShortDisplayGroupName(path: String, bucketName: String, groupNamePostfix: String): String {
-        val groupFullPath = "$bucketName-$path-$groupNamePostfix"
-        if (groupFullPath.length <= GROUP_DISPLAYNAME_MAXLENGTH) {
-            return groupFullPath
-        }
-
-        val groupNoPath = "$bucketName-$groupNamePostfix"
-        // Minus 1 because there will be an extra separator added when including shortPath.
-        val pathPartLength = GROUP_DISPLAYNAME_MAXLENGTH - 1 - groupNoPath.length
-        return if (pathPartLength > 0) {
-            val shortPath = path.substring(0, pathPartLength)
-            "$bucketName-$shortPath-$groupNamePostfix"
-        } else if (groupNoPath.length > GROUP_DISPLAYNAME_MAXLENGTH) {
-            groupNoPath.substring(0, GROUP_DISPLAYNAME_MAXLENGTH)
-        } else {
-            groupNoPath
-        }
+        return StorageGridGroupUtils.ensureShortDisplayGroupName(path, bucketName, groupNamePostfix)
     }
 
     private fun createGroupAccessPostfix(access: List<Access>): String {
@@ -424,7 +405,3 @@ data class S3AccessKeys(
     val s3accesskey: String,
     val s3secretaccesskey: String,
 )
-
-object StorageGridConstants {
-    const val GROUP_DISPLAYNAME_MAXLENGTH = 32
-}
