@@ -2,7 +2,7 @@
 def jenkinsfile
 
 def config = [
-    scriptVersion              : 'v7',
+    scriptVersion              : 'feature/AOS-5907'
     iqOrganizationName         : 'Team AOS',
     compilePropertiesIq        : "-x test",
     pipelineScript             : 'https://git.aurora.skead.no/scm/ao/aurora-pipeline-scripts.git',
@@ -10,6 +10,11 @@ def config = [
     javaVersion                : 11,
     jiraFiksetIKomponentversjon: true,
     chatRoom                   : "#aos-notifications",
+    openShiftBuilderVersion    : "feature_AOS_5907_release_binary_build-SNAPSHOT",
+    sonarQube                  : false,
+    disableAllReports          : true,
+    iq                         : false,
+    uploadLeveransepakke       : false,
     versionStrategy            : [
         [branch: 'master', versionHint: '0']
     ]
