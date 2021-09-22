@@ -2,7 +2,7 @@
 def jenkinsfile
 
 def config = [
-    scriptVersion              : 'feature/AOS-5907'
+    scriptVersion              : 'feature/AOS-5907',
     iqOrganizationName         : 'Team AOS',
     compilePropertiesIq        : "-x test",
     pipelineScript             : 'https://git.aurora.skead.no/scm/ao/aurora-pipeline-scripts.git',
