@@ -1,12 +1,6 @@
 package no.skatteetaten.aurora.fergus.service
 
-import kotlinx.coroutines.reactive.awaitFirst
-import kotlinx.coroutines.reactive.awaitFirstOrNull
-import kotlinx.coroutines.reactive.awaitSingle
-import mu.KotlinLogging
-import no.skatteetaten.aurora.fergus.error.FergusException
-import no.skatteetaten.aurora.fergus.controllers.Access
-import no.skatteetaten.aurora.fergus.controllers.AuthorizationPayload
+import java.util.UUID
 import org.openapitools.client.api.GroupsApi
 import org.openapitools.client.api.UsersApi
 import org.openapitools.client.model.AuthorizeResponse
@@ -31,7 +25,14 @@ import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClientResponseException
 import org.springframework.web.server.ResponseStatusException
-import java.util.UUID
+import kotlinx.coroutines.reactive.awaitFirst
+import kotlinx.coroutines.reactive.awaitFirstOrNull
+import kotlinx.coroutines.reactive.awaitSingle
+import mu.KotlinLogging
+import no.skatteetaten.aurora.fergus.controllers.Access
+import no.skatteetaten.aurora.fergus.controllers.AuthorizationPayload
+import no.skatteetaten.aurora.fergus.error.FergusException
+import no.skatteetaten.aurora.fergus.utils.StorageGridGroupUtils
 
 private val logger = KotlinLogging.logger {}
 
@@ -184,18 +185,7 @@ class StorageGridServiceReactive(
     ): String {
         val groupNamePostfix = createGroupAccessPostfix(access)
 
-        return ensureShortDisplayGroupName(path, bucketName, groupNamePostfix)
-    }
-
-    private fun ensureShortDisplayGroupName(path: String, bucketName: String, groupNamePostfix: String): String {
-        val totalLength = "$bucketName-$path-$groupNamePostfix".length
-        return if (totalLength > StorageGridConstants.GROUP_DISPLAYNAME_MAXLENGTH) {
-            val pathPartLength = StorageGridConstants.GROUP_DISPLAYNAME_MAXLENGTH - 2 - bucketName.length - groupNamePostfix.length
-            if (pathPartLength > 0) {
-                val shortPath = path.substring(0, pathPartLength)
-                "$bucketName-$shortPath-$groupNamePostfix"
-            } else "$bucketName-$groupNamePostfix".substring(0, StorageGridConstants.GROUP_DISPLAYNAME_MAXLENGTH)
-        } else "$bucketName-$path-$groupNamePostfix"
+        return StorageGridGroupUtils.ensureShortDisplayGroupName(path, bucketName, groupNamePostfix)
     }
 
     private fun createGroupAccessPostfix(access: List<Access>): String {
@@ -315,7 +305,11 @@ class StorageGridServiceReactive(
         }
     }
 
-    private fun aggregateGroupIdsIntoRequest(existingGroupIds: List<UUID>?, groupId: UUID, patchUserRequest: PatchUserRequest) {
+    private fun aggregateGroupIdsIntoRequest(
+        existingGroupIds: List<UUID>?,
+        groupId: UUID,
+        patchUserRequest: PatchUserRequest
+    ) {
         val groupIdSet: MutableSet<UUID> = existingGroupIds?.toMutableSet() ?: mutableSetOf<UUID>()
         groupIdSet.add(groupId)
         for (gId in groupIdSet) {
@@ -411,7 +405,3 @@ data class S3AccessKeys(
     val s3accesskey: String,
     val s3secretaccesskey: String,
 )
-
-object StorageGridConstants {
-    const val GROUP_DISPLAYNAME_MAXLENGTH = 32
-}
