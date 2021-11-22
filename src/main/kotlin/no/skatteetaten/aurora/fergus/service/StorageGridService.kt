@@ -60,6 +60,7 @@ class StorageGridServiceReactive(
 
     override suspend fun provideBucket(
         bucketName: String,
+        bucketRegion: String,
         token: String
     ): String {
         val storageGridContainersApi = storageGridApiFactory.storageGridContainersApi(token)
@@ -76,7 +77,7 @@ class StorageGridServiceReactive(
         // Check if bucketName exists in bucketListResponse, if not, create
         val bucketNames: List<String> = bucketListResponse.data.map { it.name }
         if (!bucketNames.contains(bucketName)) {
-            val containerCreate = ContainerCreate().name(bucketName)
+            val containerCreate = ContainerCreate().name(bucketName).region(bucketRegion)
             val containerCreateResponse = storageGridContainersApi
                 .orgContainersPost(containerCreate)
                 .awaitSingle()
@@ -378,7 +379,7 @@ class StorageGridServiceReactive(
 interface StorageGridService {
     suspend fun authorize(authorizationPayload: AuthorizationPayload): String = integrationDisabled()
 
-    suspend fun provideBucket(bucketName: String, token: String): String = integrationDisabled()
+    suspend fun provideBucket(bucketName: String, bucketRegion: String, token: String): String = integrationDisabled()
 
     suspend fun provideGroup(bucketName: String, path: String, access: List<Access>, token: String): UUID =
         integrationDisabled()

@@ -17,6 +17,7 @@ import javax.validation.Valid
 class UserPoliciesController(
     private val storageGridService: StorageGridService,
     @Value("\${integrations.storagegrid.s3url}") val s3Url: String,
+    @Value("\${integrations.storagegrid.bucketregion}") val bucketRegion: String,
 ) {
     @PostMapping("/buckets/{bucketname}/paths/{path}/userpolicies")
     suspend fun provisionUserPolicies(
@@ -32,7 +33,7 @@ class UserPoliciesController(
         )
         val token = storageGridService.authorize(authorizationPayload)
         // Verify Bucket existence and create Bucket if not (MVP)
-        storageGridService.provideBucket(bucketname, token)
+        storageGridService.provideBucket(bucketname, bucketRegion, token)
         // Verify Group existence and create Group with Policy if not (MVP)
         val groupId = storageGridService.provideGroup(bucketname, path, provisionUserPoliciesPayload.access, token)
         // Verify User existence and create User if not. Assign/Update Group membership (MVP)

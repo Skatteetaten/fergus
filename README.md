@@ -43,6 +43,7 @@ Here is a summary of the environment variables used by Fergus:
 | ---| ---| ---|
 | FERGUS_MANAGEMENT_URL | - | The URL of the StorageGRID management API |
 | FERGUS_S3_URL | http://uia0ins-netapp-storagegrid01.skead.no:10880/ | The URL of the StorageGRID S3 API |
+| FERGUS_S3_REGION | no-skatt-1 | The default region for buckets created |
 | FERGUS_RANDOMPASS | true | Set to false if provisioned users should get a fixed password (NB: Testing only)|
 | FERGUS_DEFAULT_PASSWORD | S3userpass | The returned userpass if FERGUS_RANDOMPASS is false |
 | FERGUS_DEBUG | false | Set to true to enable debug logging |
