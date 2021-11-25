@@ -117,6 +117,7 @@ class StorageGridServiceTest {
     fun provideBucketHappyTest() {
         val mockToken = "testtoken"
         val bucketName = "bucket-1"
+        val bucketRegion = "testregion"
 
         every {
             storageGridApiFactory.storageGridContainersApi(any())
@@ -139,7 +140,7 @@ class StorageGridServiceTest {
         } returns Mono.just(containerCreateResponse)
 
         runBlocking {
-            val bucketNameResponse = storageGridService.provideBucket(bucketName, mockToken)
+            val bucketNameResponse = storageGridService.provideBucket(bucketName, bucketRegion, mockToken)
 
             assertThat(bucketNameResponse).isEqualTo(bucketName)
         }
@@ -149,6 +150,7 @@ class StorageGridServiceTest {
     fun `Should throw error on provideBucket when storageGridContainersApi_orgContainersGet fails`() {
         val mockToken = "testtoken"
         val bucketName = "bucket-1"
+        val bucketRegion = "testregion"
 
         every {
             storageGridApiFactory.storageGridContainersApi(any())
@@ -161,7 +163,7 @@ class StorageGridServiceTest {
         } returns Mono.just(containerListResponse)
 
         runBlocking {
-            assertk.assertThat { storageGridService.provideBucket(bucketName, mockToken) }
+            assertk.assertThat { storageGridService.provideBucket(bucketName, bucketRegion, mockToken) }
                 .isFailure()
                 .isInstanceOf(ResponseStatusException::class)
                 .messageContains("The Storagegrid containers api returned an error on orgContainersGet")
@@ -172,6 +174,7 @@ class StorageGridServiceTest {
     fun `Should throw error on provideBucket when storageGridContainersApi_orgContainersPost fails`() {
         val mockToken = "testtoken"
         val bucketName = "bucket-1"
+        val bucketRegion = "testregion"
 
         every {
             storageGridApiFactory.storageGridContainersApi(any())
@@ -191,7 +194,7 @@ class StorageGridServiceTest {
         } returns Mono.just(containerCreateResponse)
 
         runBlocking {
-            assertk.assertThat { storageGridService.provideBucket(bucketName, mockToken) }
+            assertk.assertThat { storageGridService.provideBucket(bucketName, bucketRegion, mockToken) }
                 .isFailure()
                 .isInstanceOf(ResponseStatusException::class)
                 .messageContains("The Storagegrid containers api returned an error on orgContainersPost")

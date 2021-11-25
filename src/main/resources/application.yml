@@ -32,6 +32,7 @@ integrations:
     storagegrid:
         url: ${FERGUS_MANAGEMENT_URL:http://storagegrid}
         s3url: ${FERGUS_S3_URL:http://uia0ins-netapp-storagegrid01.skead.no:10880/}
+        bucketregion: ${FERGUS_S3_REGION:no-skatt-1}
 
 ---
 

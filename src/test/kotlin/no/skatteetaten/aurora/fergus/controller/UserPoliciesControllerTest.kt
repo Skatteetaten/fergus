@@ -33,7 +33,7 @@ class UserPoliciesControllerTest {
             storageGridService.authorize(any())
         } returns "testtoken"
         coEvery {
-            storageGridService.provideBucket("bucket-1", "testtoken")
+            storageGridService.provideBucket("bucket-1", "no-skatt-1", "testtoken")
         } returns "bucket-1"
         coEvery {
             storageGridService.provideGroup("bucket-1", "path-test", any(), "testtoken")
