@@ -2,7 +2,7 @@ plugins {
     id("idea")
     id("java")
     id("org.openapi.generator") version "5.2.0"
-    id("no.skatteetaten.gradle.aurora") version("4.3.13")
+    id("no.skatteetaten.gradle.aurora") version("4.4.12")
 }
 
 aurora {
