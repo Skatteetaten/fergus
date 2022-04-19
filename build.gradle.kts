@@ -27,9 +27,7 @@ dependencies {
     implementation("com.google.code.findbugs:jsr305:3.0.2")
 
     // MockWebServer
-    testImplementation("no.skatteetaten.aurora:mockwebserver-extensions-kotlin:1.1.7") {
-        exclude("no.skatteetaten.aurora.springboot", "aurora-spring-boot-mvc-starter")
-    }
+    testImplementation("no.skatteetaten.aurora:mockwebserver-extensions-kotlin:1.2.0")
 
     testImplementation("com.ninja-squad:springmockk:3.1.1")
 }
