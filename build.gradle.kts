@@ -31,9 +31,6 @@ dependencies {
 
     testImplementation("com.ninja-squad:springmockk:3.1.1")
 }
-repositories {
-    mavenCentral()
-}
 
 openApiGenerate {
     inputSpec.set("src/main/resources/swagger/storagegrid-api.yml")
